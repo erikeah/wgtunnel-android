@@ -567,4 +567,7 @@
     <string name="tunnel_scripting">Pre/Post script support</string>
     <string name="name_error_empty">Tunnel name cannot be empty</string>
     <string name="more_options">More options</string>
+
+    <string name="error_socks5_port_unavailable">SOCKS5 port %1$d is already in use.\nPlease choose a different port.</string>
+    <string name="error_http_port_unavailable">HTTP listener port %1$d is already in use.\nPlease choose a different port.</string>
 </resources>

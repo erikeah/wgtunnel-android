@@ -10,8 +10,6 @@ internal object ProxyBackend {
 
     external fun awgUpdateProxyTunnelPeers(handle: Int, settings: String): Int
 
-    external fun awgStopProxy()
-
     external fun awgTurnProxyTunnelOff(handle: Int)
 
     external fun awgGetProxyConfig(handle: Int): String

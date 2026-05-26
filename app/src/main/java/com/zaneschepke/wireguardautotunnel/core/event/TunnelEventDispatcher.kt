@@ -61,6 +61,14 @@ class TunnelEventDispatcher(private val notificationManager: TunnelNotificationS
                     is TunnelErrorEvent.InternalFailure -> {
                         notificationManager.showError(error.message)
                     }
+
+                    is TunnelErrorEvent.Socks5PortUnavailable -> {
+                        notificationManager.showSocks5PortUnavailable(error.port)
+                    }
+
+                    is TunnelErrorEvent.HttpPortUnavailable -> {
+                        notificationManager.showHttpPortUnavailable(error.port)
+                    }
                 }
             }
             .launchIn(scope)

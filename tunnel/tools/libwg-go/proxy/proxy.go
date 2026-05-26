@@ -9,6 +9,7 @@ import (
 	"net"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/amnezia-vpn/amneziawg-go/conn"
 	"github.com/amnezia-vpn/amneziawg-go/device"
@@ -21,8 +22,7 @@ import (
 import "C"
 
 var (
-	ctx                  context.Context
-	cancelFunc           context.CancelFunc
+	cancelFuncs          map[int32]context.CancelFunc
 	tag                  string
 	virtualTunnelHandles map[int32]*wireproxyawg.VirtualTun
 )
@@ -30,6 +30,7 @@ var (
 func init() {
 	tag = "AwgProxy"
 	virtualTunnelHandles = make(map[int32]*wireproxyawg.VirtualTun)
+	cancelFuncs = make(map[int32]context.CancelFunc)
 }
 
 //export awgStartProxy
@@ -134,13 +135,14 @@ func awgStartProxy(interfaceName string, config string, uapiPath string, bypass 
 	virtualTunnelHandles[handle] = virtualTun
 
 	// Create cancellable context
-	ctx, cancelFunc = context.WithCancel(context.Background())
+	tunnelCtx, tunnelCancel := context.WithCancel(context.Background())
+	cancelFuncs[handle] = tunnelCancel
 
 	// Spawn all routines with context
 	for _, spawner := range conf.Routines {
 		shared.LogDebug(tag, "Spawning routine..")
 		go func(s wireproxyawg.RoutineSpawner) {
-			if err := s.SpawnRoutine(ctx, virtualTun); err != nil {
+			if err := s.SpawnRoutine(tunnelCtx, virtualTun); err != nil {
 				shared.LogError(tag, "Routine failed: %v", err)
 			}
 		}(spawner)
@@ -195,24 +197,6 @@ func awgGetProxyConfig(tunnelHandle int32) *C.char {
 	return C.CString(settings)
 }
 
-//export awgStopProxy
-func awgStopProxy() {
-	if cancelFunc != nil {
-		shared.LogDebug(tag, "Stopping proxy routines..")
-		cancelFunc()
-		cancelFunc = nil
-	}
-	handles := make([]int32, 0, len(virtualTunnelHandles))
-	for h := range virtualTunnelHandles {
-		handles = append(handles, h)
-	}
-	for _, handle := range handles {
-		awgTurnProxyTunnelOff(handle)
-	}
-	virtualTunnelHandles = make(map[int32]*wireproxyawg.VirtualTun)
-	shared.LogDebug(tag, "Proxy fully reset: %d handles closed", len(handles))
-}
-
 // control hook to bypass sockets
 func protectControlFunc(network, address string, c syscall.RawConn) error {
 	var opErr error
@@ -238,6 +222,12 @@ func awgTurnProxyTunnelOff(virtualTunnelHandle int32) {
 		return
 	}
 	shared.LogDebug(tag, "Tearing down tunnel %d", virtualTunnelHandle)
+
+	if cancel, exists := cancelFuncs[virtualTunnelHandle]; exists {
+		cancel()
+		delete(cancelFuncs, virtualTunnelHandle)
+		time.Sleep(50 * time.Millisecond)
+	}
 
 	// Close UAPI listener and underlying file
 	if virtualTun.Uapi != nil {

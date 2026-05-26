@@ -76,11 +76,6 @@ JNIEXPORT jint JNICALL Java_com_zaneschepke_tunnel_ProxyBackend_awgStartProxy(JN
     return ret;
 }
 
-JNIEXPORT void JNICALL Java_com_zaneschepke_tunnel_ProxyBackend_awgStopProxy(JNIEnv *env, jclass c)
-{
-    awgStopProxy();
-}
-
 JNIEXPORT void JNICALL Java_com_zaneschepke_tunnel_ProxyBackend_awgTurnProxyTunnelOff(JNIEnv *env, jclass c, jint handle)
 {
     awgTurnProxyTunnelOff(handle);

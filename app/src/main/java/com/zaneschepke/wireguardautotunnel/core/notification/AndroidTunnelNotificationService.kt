@@ -150,6 +150,20 @@ class AndroidTunnelNotificationService(
         showError(context.getString(R.string.error_root_denied))
     }
 
+    override suspend fun showSocks5PortUnavailable(port: Int) {
+        val context = notificationService.context
+        val message = context.getString(R.string.error_socks5_port_unavailable, port)
+
+        showError(message)
+    }
+
+    override suspend fun showHttpPortUnavailable(port: Int) {
+        val context = notificationService.context
+        val message = context.getString(R.string.error_http_port_unavailable, port)
+
+        showError(message)
+    }
+
     override suspend fun showError(message: String) {
 
         val notification =

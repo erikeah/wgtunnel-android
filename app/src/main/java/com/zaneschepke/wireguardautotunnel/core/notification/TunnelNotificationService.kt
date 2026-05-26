@@ -16,6 +16,10 @@ interface TunnelNotificationService {
 
     suspend fun showStateConflict(tunnelId: Int)
 
+    suspend fun showSocks5PortUnavailable(port: Int)
+
+    suspend fun showHttpPortUnavailable(port: Int)
+
     suspend fun showRootShellAccess()
 
     suspend fun showError(message: String)

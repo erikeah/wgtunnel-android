@@ -41,6 +41,24 @@ internal class WireGuardTunnelEngine(
                 }
                 is BackendMode.Proxy.Standard -> {
                     val proxyConfig = mode.proxyConfig
+
+                    proxyConfig.socks5?.port?.let { port ->
+                        if (!isPortAvailable(port)) {
+                            throw BackendException.Socks5PortUnavailable(
+                                "SOCKS5 port $port is already in use.",
+                                port,
+                            )
+                        }
+                    }
+
+                    proxyConfig.http?.port?.let { port ->
+                        if (!isPortAvailable(port)) {
+                            throw BackendException.HttpPortUnavailable(
+                                "HTTP listener port $port is already in use.",
+                                port,
+                            )
+                        }
+                    }
                     startProxyTunnel(ifName, config, proxyConfig, false)
                 }
                 is BackendMode.Vpn -> {
@@ -59,6 +77,15 @@ internal class WireGuardTunnelEngine(
             mode = mode,
             removedPeerEndpoint = removedPeerEndpoint,
         )
+    }
+
+    private fun isPortAvailable(port: Int): Boolean {
+        if (port !in 1..65_535) return false
+        return try {
+            ServerSocket(port).use { true }
+        } catch (e: IOException) {
+            false
+        }
     }
 
     private fun buildConfig(mode: BackendMode): Pair<Config, Boolean> {
