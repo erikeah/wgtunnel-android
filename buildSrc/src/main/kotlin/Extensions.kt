@@ -26,6 +26,7 @@ fun allowedLicenseUrls(): List<String> {
         "https://github.com/RikkaApps/Shizuku-API/blob/master/LICENSE",
         "https://github.com/rafi0101/Android-Room-Database-Backup/blob/master/LICENSE",
         "https://opensource.org/license/mit",
+        "https://www.bouncycastle.org/licence.html",
     )
 }
 

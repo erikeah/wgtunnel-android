@@ -34,7 +34,6 @@ import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsText
 import java.io.File
 import java.io.IOException
-import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -335,7 +334,9 @@ class SharedAppViewModel(
     fun exportSelectedTunnels(uri: Uri?) = intent {
         val selectedTunnels = tunnelsUiState.value.selectedTunnels
         val files = createConfFiles(selectedTunnels)
-        val shareFileName = "wgtunnel-export_${Instant.now().epochSecond}.zip"
+
+        val shareFileName = createExportFileName(selectedTunnels.size)
+
         val onFailure = { action: Throwable ->
             intent {
                 postSideEffect(
@@ -349,6 +350,7 @@ class SharedAppViewModel(
             }
             Unit
         }
+
         fileUtils
             .createNewShareFile(shareFileName)
             .onSuccess {
@@ -364,6 +366,17 @@ class SharedAppViewModel(
                 clearSelectedTunnels()
             }
             .onFailure(onFailure)
+    }
+
+    private fun createExportFileName(tunnelCount: Int): String {
+        val timestamp =
+            java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"))
+
+        return when (tunnelCount) {
+            1 -> "WGTunnel_Export_$timestamp.zip"
+            else -> "WGTunnel_Export_${timestamp}_${tunnelCount}_Tunnels.zip"
+        }
     }
 
     fun setScreenRecordingSecurity(to: Boolean) = intent {

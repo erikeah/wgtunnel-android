@@ -85,7 +85,10 @@ data class TunnelConfig(
 
         fun tunnelConfFromQuick(amQuick: String, name: String? = null): TunnelConfig {
             val config = Config.parseQuickString(amQuick)
-            return TunnelConfig(name = name ?: config.defaultName(), quickConfig = amQuick)
+            return TunnelConfig(
+                name = config.name ?: name ?: config.defaultName(),
+                quickConfig = amQuick,
+            )
         }
 
         fun generateDefaultGlobalConfig(): TunnelConfig {
