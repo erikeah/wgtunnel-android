@@ -12,9 +12,10 @@ object RootShell {
 
     fun requestRootPermission(): Boolean {
         return try {
-            val result = Shell.cmd("true").exec()
-            result.isSuccess
+            val shell = Shell.cmd("su").exec()
+            shell.isSuccess
         } catch (e: Exception) {
+            Timber.e(e, "Root permission request failed or timed out")
             false
         }
     }
