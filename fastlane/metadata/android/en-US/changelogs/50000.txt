@@ -7,5 +7,4 @@ What's new:
 - Added support got DoT and custom endpoints for peer resolution DNS
 - Amnezia tunnel globals
 - Improved notifications
-- UI improvements with better feature descriptions
 - Various bug fix and app performance improvements
