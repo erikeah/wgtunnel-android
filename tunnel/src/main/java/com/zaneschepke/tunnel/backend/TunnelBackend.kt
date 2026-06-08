@@ -5,11 +5,12 @@ import com.zaneschepke.networkmonitor.DnsInfo
 import com.zaneschepke.networkmonitor.NetworkMonitor
 import com.zaneschepke.networkmonitor.PrivateDnsMode
 import com.zaneschepke.networkmonitor.StableNetworkEngine
-import com.zaneschepke.tunnel.DnsConfigManager
 import com.zaneschepke.tunnel.NotificationProvider
 import com.zaneschepke.tunnel.StatusCallback
 import com.zaneschepke.tunnel.Tunnel
 import com.zaneschepke.tunnel.VpnBackend
+import com.zaneschepke.tunnel.backend.dns.AndroidNetworkResolver
+import com.zaneschepke.tunnel.backend.dns.CustomDnsResolver
 import com.zaneschepke.tunnel.event.TunnelEvent
 import com.zaneschepke.tunnel.model.BackendMode
 import com.zaneschepke.tunnel.model.DnsBoostrapConfig
@@ -27,7 +28,6 @@ import com.zaneschepke.tunnel.state.KillSwitchState
 import com.zaneschepke.tunnel.state.RuntimeDnsConfig
 import com.zaneschepke.tunnel.util.RootShellException
 import com.zaneschepke.tunnel.util.buildResolvedPeers
-import com.zaneschepke.tunnel.util.exponentialBackoffForever
 import com.zaneschepke.tunnel.util.isLastTunnelOfServiceType
 import com.zaneschepke.tunnel.util.toHostMap
 import com.zaneschepke.wireguardautotunnel.parser.ActiveConfig
@@ -39,6 +39,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -454,67 +455,76 @@ class TunnelBackend(
         updateTunnelBootstrapState(tunnel.id, BootstrapState.Complete)
     }
 
-    suspend fun resolvePeers(mode: BackendMode): Map<PublicKey, DnsBootstrapResult> {
-        val peersToResolve = mode.config.peers.filter { !it.isStaticallyConfigured }
-        if (peersToResolve.isEmpty()) return emptyMap()
+    suspend fun resolvePeers(mode: BackendMode): Map<PublicKey, DnsBootstrapResult> =
+        coroutineScope {
+            val peersToResolve = mode.config.peers.filter { !it.isStaticallyConfigured }
+            if (peersToResolve.isEmpty()) return@coroutineScope emptyMap()
 
-        val results = mutableMapOf<PublicKey, DnsBootstrapResult>()
+            val results = mutableMapOf<PublicKey, DnsBootstrapResult>()
 
-        // Wait until we have internet before starting any resolution
-        stableNetworkEngine.stableState.first { it?.state?.hasInternet() == true }
+            stableNetworkEngine.stableState.first { it?.state?.activeNetwork?.network != null }
 
-        exponentialBackoffForever {
+            var delayMs = 500L
 
-            // If we lose internet while inside the backoff loop, wait again until it comes back
-            if (stableNetworkEngine.stableState.value?.state?.hasInternet() != true) {
-                Timber.d("No internet — waiting for connectivity before next resolution attempt")
-                stableNetworkEngine.stableState.first { it?.state?.hasInternet() == true }
-                Timber.d("Internet restored — resuming peer resolution")
-            }
+            while (coroutineContext.isActive) {
 
-            Timber.d("Peer resolution attempt (resolved=${results.size}/${peersToResolve.size})")
+                val snapshot = stableNetworkEngine.stableState.value?.state
+                val network = snapshot?.activeNetwork?.network
 
-            for (peer in peersToResolve) {
-                if (results.containsKey(peer.publicKey)) continue
-
-                val endpoint = peer.endpoint ?: continue
-                val host = endpoint.substringBeforeLast(":")
-
-                val dnsConfig = _status.value.runtimeDnsConfig
-                val bypassNeeded = mode is BackendMode.Vpn || _status.value.killSwitch.enabled
-
-                val dnsResult =
-                    try {
-                        DnsConfigManager.resolveHostBootstrap(
-                            host = host,
-                            protocol = dnsConfig.protocol,
-                            upstream = dnsConfig.upstream,
-                            bypass = bypassNeeded,
-                        )
-                    } catch (e: Exception) {
-                        Timber.w(e, "DNS resolution failed for host=$host")
-                        continue
-                    }
-
-                if (dnsResult.ipv4.isEmpty() && dnsResult.ipv6.isEmpty()) {
-                    Timber.w("No IP addresses returned for host=$host")
+                if (network == null) {
+                    Timber.d("No network — waiting")
+                    delay(delayMs.milliseconds)
+                    delayMs = (delayMs * 2).coerceAtMost(30_000)
                     continue
                 }
 
-                results[peer.publicKey] =
-                    dnsResult.copy(ipv4 = dnsResult.ipv4, ipv6 = dnsResult.ipv6.map { "[$it]" })
-                Timber.d("Successfully resolved $host → ${results[peer.publicKey]}")
+                delayMs = 500L
+
+                val dnsMode = _status.value.dnsMode
+                val runtimeDns = _status.value.runtimeDnsConfig
+                val bypassNeeded = mode is BackendMode.Vpn || _status.value.killSwitch.enabled
+
+                val resolver =
+                    when (dnsMode) {
+                        is DnsBoostrapMode.System -> AndroidNetworkResolver(network)
+                        is DnsBoostrapMode.Custom -> CustomDnsResolver(runtimeDns, bypassNeeded)
+                    }
+
+                var progressed = false
+
+                for (peer in peersToResolve) {
+
+                    if (results.containsKey(peer.publicKey)) continue
+
+                    val host = peer.endpoint?.substringBeforeLast(":") ?: continue
+
+                    try {
+                        val dnsResult = resolver.resolve(host)
+
+                        if (dnsResult.ipv4.isNotEmpty() || dnsResult.ipv6.isNotEmpty()) {
+                            results[peer.publicKey] =
+                                dnsResult.copy(ipv6 = dnsResult.ipv6.map { "[$it]" })
+                            progressed = true
+                        }
+                    } catch (e: Exception) {
+                        Timber.w(e, "DNS failed for $host")
+                    }
+                }
+
+                if (results.keys.containsAll(peersToResolve.map { it.publicKey })) {
+                    Timber.d("All peers resolved")
+                    return@coroutineScope results
+                }
+
+                if (!progressed) {
+                    Timber.d("No progress — backing off")
+                    delay(delayMs.milliseconds)
+                    delayMs = (delayMs * 2).coerceAtMost(30_000)
+                }
             }
 
-            if (results.size == peersToResolve.size) {
-                return@exponentialBackoffForever
-            }
-
-            throw IllegalStateException("Incomplete peer resolution, will retry with backoff")
+            return@coroutineScope results
         }
-
-        return results
-    }
 
     private fun CoroutineScope.startActiveConfigJob(
         handle: Int,

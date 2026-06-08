@@ -35,27 +35,29 @@ data class ConnectivityState(
 data class Permissions(val locationServicesEnabled: Boolean, val locationPermissionGranted: Boolean)
 
 sealed class ActiveNetwork {
+    abstract val network: Network?
+
     fun key(): String {
         return when (this) {
             is Wifi -> "wifi:${networkId}"
             is Cellular -> "cell:${network?.hashCode() ?: 0}"
             is Ethernet -> "eth:${network?.hashCode() ?: 0}"
-            Disconnected -> "none"
+            is Disconnected -> "none"
         }
     }
 
-    data object Disconnected : ActiveNetwork()
+    data class Disconnected(override val network: Network? = null) : ActiveNetwork()
 
     data class Wifi(
         val ssid: String,
         val securityType: WifiSecurityType?,
         val networkId: String,
-        val network: Network?,
+        override val network: Network?,
     ) : ActiveNetwork()
 
-    data class Cellular(val network: Network?) : ActiveNetwork()
+    data class Cellular(override val network: Network?) : ActiveNetwork()
 
-    data class Ethernet(val network: Network?) : ActiveNetwork()
+    data class Ethernet(override val network: Network?) : ActiveNetwork()
 }
 
 sealed interface VpnState {

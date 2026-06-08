@@ -105,7 +105,8 @@ class AndroidNetworkMonitor(
 
     // tracking to prevent races that occur when VPN is first activated and to prevent redundant
     // location queries in Legacy mode
-    private val lastKnownActiveNetwork = MutableStateFlow<ActiveNetwork>(ActiveNetwork.Disconnected)
+    private val lastKnownActiveNetwork =
+        MutableStateFlow<ActiveNetwork>(ActiveNetwork.Disconnected())
 
     private val privateDnsFlow: Flow<PrivateDnsSettings> = callbackFlow {
         val contentResolver = appContext.contentResolver
@@ -486,7 +487,7 @@ class AndroidNetworkMonitor(
 
                 if (defaultCaps == null || defaultNetwork == null) {
                     return@combine ConnectivityState(
-                        activeNetwork = ActiveNetwork.Disconnected,
+                        activeNetwork = ActiveNetwork.Disconnected(),
                         locationPermissionsGranted = permissions.locationPermissionGranted,
                         locationServicesEnabled = permissions.locationServicesEnabled,
                         vpnState = VpnState.Inactive,
@@ -561,7 +562,7 @@ class AndroidNetworkMonitor(
                             ActiveNetwork.Cellular(networkData.cellularEvent.network)
                         }
 
-                        else -> ActiveNetwork.Disconnected
+                        else -> ActiveNetwork.Disconnected()
                     }
 
                 lastKnownActiveNetwork.value = physicalNetwork

@@ -9,9 +9,9 @@ import com.zaneschepke.wireguardautotunnel.core.notification.TunnelNotificationL
 import com.zaneschepke.wireguardautotunnel.core.notification.TunnelNotificationService
 import com.zaneschepke.wireguardautotunnel.domain.repository.TunnelRepository
 import com.zaneschepke.wireguardautotunnel.ui.state.DisplayTunnelState
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
-import kotlin.time.Duration.Companion.milliseconds
 
 class TunnelEventDispatcher(
     private val notificationManager: TunnelNotificationService,
