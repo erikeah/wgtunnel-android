@@ -1,6 +1,5 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.FilterConfiguration
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -39,10 +38,11 @@ configure<ApplicationExtension> {
 
     splits {
         abi {
-            isEnable = !project.hasProperty("noSplits")
+            val noSplits = providers.gradleProperty("noSplits").isPresent
+            isEnable = !noSplits
             reset()
             include("armeabi-v7a", "arm64-v8a")
-            isUniversalApk = !project.hasProperty("noSplits")
+            isUniversalApk = !noSplits
         }
     }
 
@@ -50,14 +50,17 @@ configure<ApplicationExtension> {
         applicationId = Constants.APP_ID
         minSdk = Constants.MIN_SDK
         targetSdk = Constants.TARGET_SDK
-        versionCode = computeVersionCode()
-        versionName = computeVersionName()
+        versionCode = Constants.VERSION_CODE
+        versionName = Constants.VERSION_NAME
+
+        experimentalProperties["android.experimental.disableGitVersion"] = true
 
         sourceSets {
             getByName("debug").assets.directories += "$projectDir/schemas"
         }
 
-        val languagesArray = buildLanguagesArray(languageList())
+        val languagesProvider = project.languageListProvider()
+        val languagesArray = buildLanguagesArray(languagesProvider.get())
         buildConfigField("String[]", "LANGUAGES", "new String[]{ $languagesArray }")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -139,31 +142,36 @@ configure<ApplicationExtension> {
 
 androidComponents {
     onVariants { variant ->
+        val isNightly = project.isNightlyBuild()
 
-        val abiNameMap =
-            mapOf(
-                "armeabi-v7a" to "armv7",
-                "arm64-v8a" to "arm64",
-                "x86" to "x86",
-                "x86_64" to "x64",
-            )
+        if (isNightly) {
+            variant.outputs.forEach { output ->
+                output.versionCode.set(output.versionCode.get() + 1)
+                val baseVersion = output.versionName.get()
+                val gitHash = project.getGitCommitHash()
+                output.versionName.set("$baseVersion-nightly+git.$gitHash")
+            }
+        }
+
+        val abiNameMap = mapOf(
+            "armeabi-v7a" to "armv7",
+            "arm64-v8a" to "arm64",
+            "x86" to "x86",
+            "x86_64" to "x64",
+        )
 
         variant.outputs.forEach { output ->
             val abi = output.filters.find { it.filterType == FilterConfiguration.FilterType.ABI }?.identifier
-
             val flavorName = variant.productFlavors.joinToString("-") { it.second }
-
             val versionName = output.versionName.get()
-
             val baseFileName = "${Constants.APP_NAME}-${flavorName}-v${versionName}"
 
-            val outputFileName =
-                if (!abi.isNullOrEmpty()) {
-                    val shortAbiName = abiNameMap.getOrDefault(abi, abi)
-                    "${baseFileName}-${shortAbiName}.apk"
-                } else {
-                    "${baseFileName}.apk"
-                }
+            val outputFileName = if (!abi.isNullOrEmpty()) {
+                val shortAbiName = abiNameMap.getOrDefault(abi, abi)
+                "${baseFileName}-${shortAbiName}.apk"
+            } else {
+                "${baseFileName}.apk"
+            }
 
             output.outputFileName.set(outputFileName)
         }
