@@ -49,7 +49,7 @@ internal class ServiceHolder(val context: Context) {
         }
 
         if (_vpnService.value == null) {
-            context.startService(Intent(context, VpnService::class.java))
+            VpnService.start(context, VpnService::class.java)
         }
 
         return try {
