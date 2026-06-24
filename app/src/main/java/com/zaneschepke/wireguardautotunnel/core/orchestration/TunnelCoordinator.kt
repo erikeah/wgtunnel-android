@@ -117,7 +117,7 @@ class TunnelCoordinator(
 
         // enforce single tunnel, for now
         if (backendStatus.value.activeTunnels.isNotEmpty()) {
-            stopActiveTunnelsInternal()
+            stopActiveTunnelsInternal(source)
         }
 
         startTunnelInternal(config, source)
@@ -131,7 +131,13 @@ class TunnelCoordinator(
             stopTunnelInternal(id, source)
         }
 
-    suspend fun stopActiveTunnels() = tunnelMutex.withLock { stopActiveTunnelsInternal() }
+    suspend fun stopActiveTunnels(source: TunnelActionSource = TunnelActionSource.USER) =
+        tunnelMutex.withLock {
+            if (source == TunnelActionSource.USER) {
+                _userOverrideFlow.tryEmit(Unit)
+            }
+            stopActiveTunnelsInternal(source)
+        }
 
     private suspend fun startTunnelInternal(
         tunnelConfig: TunnelConfig,
@@ -218,7 +224,7 @@ class TunnelCoordinator(
                     _actions.emit(TunnelActionEvent.Stopped(tunnelId = id, source = source))
                 }
 
-                stopActiveTunnelsInternal()
+                stopActiveTunnelsInternal(source)
                 return@withLock
             }
 
@@ -243,7 +249,15 @@ class TunnelCoordinator(
             .onFailure { _errors.emit(TunnelErrorEvent.from(it, id)) }
     }
 
-    private suspend fun stopActiveTunnelsInternal() {
+    private suspend fun stopActiveTunnelsInternal(
+        source: TunnelActionSource = TunnelActionSource.USER
+    ) {
+        val active = tunnelProvider.backendStatus.value.activeTunnels
+
+        active.keys.forEach { id ->
+            _actions.emit(TunnelActionEvent.Stopped(tunnelId = id, source = source))
+        }
+
         tunnelProvider.stopActiveTunnels()
     }
 }

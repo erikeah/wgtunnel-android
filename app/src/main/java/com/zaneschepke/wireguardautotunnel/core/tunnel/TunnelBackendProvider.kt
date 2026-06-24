@@ -4,14 +4,11 @@ import com.zaneschepke.tunnel.Tunnel
 import com.zaneschepke.tunnel.backend.Backend
 import com.zaneschepke.tunnel.model.BackendMode
 import com.zaneschepke.tunnel.state.BackendStatus
-import com.zaneschepke.wireguardautotunnel.domain.events.BackendCoreException
-import com.zaneschepke.wireguardautotunnel.domain.events.BackendMessage
 import com.zaneschepke.wireguardautotunnel.domain.model.LockdownSettings
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -52,10 +49,4 @@ class TunnelBackendProvider(
     override suspend fun disableLockDown(): Result<Unit> {
         return backend.disableKillSwitch()
     }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val localErrorEvents = MutableSharedFlow<Pair<String?, BackendCoreException>>()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val localMessageEvents = MutableSharedFlow<Pair<String?, BackendMessage>>()
 }
