@@ -544,14 +544,12 @@
 
     <string name="local_network_permission_issues_intro">Without this permission, you may experience issues with:</string>
 
-    <string name="local_network_permission_feature_tunnels">- Connecting to certain tunnels</string>
+    <string name="local_network_permission_feature_tunnels">- Connection issues with split tunneling, LAN bypass, or servers hosted on your local network</string>
     <string name="local_network_permission_feature_autotunnel">- Auto-tunneling and split tunneling features</string>
     <string name="local_network_permission_feature_proxy">- Local proxy and bypass functionality</string>
 
     <string name="local_network_permission_recommendation">Granting this permission is strongly recommended.</string>
     <string name="local_network_permission_nearby_devices">Note: Android labels this permission as “nearby devices”.</string>
-
-    <string name="not_now">Not now</string>
 
     <string name="local_network_permission_denied">Local network access denied. Some features may not work properly</string>
 </resources>

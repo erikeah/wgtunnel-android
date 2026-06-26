@@ -251,26 +251,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            if (showLocalNetworkRationale) {
-                LocalNetworkPermissionDialog(
-                    onDismiss = {
-                        showLocalNetworkRationale = false
-                        toaster.show(
-                            message = context.getString(R.string.local_network_permission_denied),
-                            type = ToastType.Warning,
-                            duration = 6000.milliseconds,
-                        )
-                    },
-                    onContinue = {
-                        showLocalNetworkRationale = false
-
-                        localNetworkPermissionLauncher.launch(
-                            Manifest.permission.ACCESS_LOCAL_NETWORK
-                        )
-                    },
-                )
-            }
-
             val startingStack = buildList {
                 add(Route.Tunnels)
                 if (intent?.action == Intent.ACTION_APPLICATION_PREFERENCES) add(Route.Settings)
@@ -359,6 +339,27 @@ class MainActivity : AppCompatActivity() {
                             vpnPermissionDenied = false
                         },
                     )
+
+                    if (showLocalNetworkRationale) {
+                        LocalNetworkPermissionDialog(
+                            onDismiss = {
+                                showLocalNetworkRationale = false
+                                toaster.show(
+                                    message =
+                                        context.getString(R.string.local_network_permission_denied),
+                                    type = ToastType.Warning,
+                                    duration = 6000.milliseconds,
+                                )
+                            },
+                            onAttest = {
+                                showLocalNetworkRationale = false
+
+                                localNetworkPermissionLauncher.launch(
+                                    Manifest.permission.ACCESS_LOCAL_NETWORK
+                                )
+                            },
+                        )
+                    }
 
                     uiState.pendingWgImportUrl?.let { url ->
                         val host = Uri.parse(url).host ?: url

@@ -1,26 +1,17 @@
 package com.zaneschepke.wireguardautotunnel.util.extensions
 
-import android.Manifest
 import android.app.Activity
-import android.content.ComponentName
 import android.content.Context
-import android.content.Context.POWER_SERVICE
 import android.content.Intent
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.os.PowerManager
 import android.provider.Settings
-import android.service.quicksettings.TileService
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.zaneschepke.wireguardautotunnel.MainActivity
 import com.zaneschepke.wireguardautotunnel.R
-import com.zaneschepke.wireguardautotunnel.service.tile.AutoTunnelControlTile
-import com.zaneschepke.wireguardautotunnel.service.tile.TunnelControlTile
-import com.zaneschepke.wireguardautotunnel.ui.screens.tunnels.splittunnel.state.TunnelApp
 import com.zaneschepke.wireguardautotunnel.util.Constants
 import com.zaneschepke.wireguardautotunnel.util.FileUtils
 import java.io.File
@@ -34,11 +25,6 @@ fun Context.openWebUrl(url: String): Result<Unit> = runCatching {
     val intent =
         Intent(Intent.ACTION_VIEW, webpage).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
     startActivity(intent)
-}
-
-fun Context.isBatteryOptimizationsDisabled(): Boolean {
-    val pm = getSystemService(POWER_SERVICE) as PowerManager
-    return pm.isIgnoringBatteryOptimizations(packageName)
 }
 
 fun Context.launchNotificationSettings() {
@@ -87,21 +73,6 @@ fun Context.hasSAFSupport(mimeType: String): Boolean {
     }
 }
 
-fun Context.launchShareFile(file: File) {
-    FileProvider.getUriForFile(this, getString(R.string.provider), file)
-    val shareIntent =
-        Intent().apply {
-            action = Intent.ACTION_SEND
-            type = FileUtils.ALL_FILE_TYPES
-            putExtra(Intent.EXTRA_STREAM, file)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-    val chooserIntent =
-        Intent.createChooser(shareIntent, "").apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-    this.startActivity(chooserIntent)
-}
-
 fun Context.launchSupportEmail(): Result<Unit> = runCatching {
     val intent =
         Intent(Intent.ACTION_SENDTO).apply {
@@ -128,7 +99,7 @@ fun Context.isRunningOnTv(): Boolean {
 fun Context.launchVpnSettings(): Result<Unit> {
     return kotlin.runCatching {
         val intent =
-            Intent(Constants.VPN_SETTINGS_PACKAGE).apply { setFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+            Intent(Constants.VPN_SETTINGS_PACKAGE).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK }
         startActivity(intent)
     }
 }
@@ -147,14 +118,6 @@ fun Context.launchLocationServicesSettings(): Result<Unit> {
     }
 }
 
-fun Context.launchSettings(): Result<Unit> {
-    return kotlin.runCatching {
-        val intent =
-            Intent(Settings.ACTION_SETTINGS).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK }
-        startActivity(intent)
-    }
-}
-
 fun Context.launchAppSettings() {
     kotlin
         .runCatching {
@@ -168,48 +131,6 @@ fun Context.launchAppSettings() {
         .onFailure {
             val fallback = Intent(Settings.ACTION_SETTINGS)
             startActivity(fallback)
-        }
-}
-
-fun Context.requestTunnelTileServiceStateUpdate() =
-    runCatching {
-            TileService.requestListeningState(
-                this,
-                ComponentName(this, TunnelControlTile::class.java),
-            )
-        }
-        .onFailure { Timber.w(it) }
-
-fun Context.requestAutoTunnelTileServiceUpdate() =
-    runCatching {
-            TileService.requestListeningState(
-                this,
-                ComponentName(this, AutoTunnelControlTile::class.java),
-            )
-        }
-        .onFailure { Timber.w(it) }
-
-fun Context.getAllInternetCapablePackages(): List<PackageInfo> {
-    val permissions = arrayOf(Manifest.permission.INTERNET)
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        packageManager.getPackagesHoldingPermissions(
-            permissions,
-            PackageManager.PackageInfoFlags.of(0L),
-        )
-    } else {
-        packageManager.getPackagesHoldingPermissions(permissions, 0)
-    }
-}
-
-fun Context.getSplitTunnelApps(): List<TunnelApp> {
-    val packages = getAllInternetCapablePackages()
-    return packages
-        .filter { it.applicationInfo != null }
-        .map { pkg ->
-            TunnelApp(
-                packageManager.getApplicationLabel(pkg.applicationInfo!!).toString(),
-                pkg.packageName,
-            )
         }
 }
 
