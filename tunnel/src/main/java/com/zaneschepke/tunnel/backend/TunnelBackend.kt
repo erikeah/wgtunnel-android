@@ -8,6 +8,7 @@ import com.zaneschepke.tunnel.VpnBackend
 import com.zaneschepke.tunnel.backend.dns.EndpointResolver
 import com.zaneschepke.tunnel.event.TunnelEvent
 import com.zaneschepke.tunnel.model.BackendMode
+import com.zaneschepke.tunnel.model.DnsBoostrapConfig
 import com.zaneschepke.tunnel.model.DnsBoostrapMode
 import com.zaneschepke.tunnel.model.DnsBootstrapResult
 import com.zaneschepke.tunnel.model.Host
@@ -427,7 +428,6 @@ class TunnelBackend(
     private fun CoroutineScope.startDynamicDnsJob(handle: Int, tunnelId: Int) = launch {
         val controller =
             DynamicDnsController(
-                stabilityWindowMs = DDNS_STABILITY_WINDOW,
                 failureWindowMs = DDNS_FAILURE_WINDOW,
                 minCheckIntervalMs = DDNS_MIN_CHECK_INTERVAL,
             )
@@ -442,11 +442,10 @@ class TunnelBackend(
                 if (!stable.state.hasInternet()) return@collect
 
                 val now = System.currentTimeMillis()
-                val isHealthy = activeTunnel.transportState is Tunnel.State.Up.Healthy
                 val isHandshakeFailure =
                     activeTunnel.transportState is Tunnel.State.Up.HandshakeFailure
 
-                if (!controller.shouldCheck(now, isHealthy, isHandshakeFailure)) return@collect
+                if (!controller.shouldCheck(now, isHandshakeFailure)) return@collect
 
                 controller.markChecked(now)
 
@@ -651,6 +650,7 @@ class TunnelBackend(
     ) {
         val mutex = peerUpdateMutexes.getOrPut(tunnelId) { Mutex() }
         mutex.withLock {
+            var forceDnsMode: DnsBoostrapMode? = null
             when (reason) {
                 PeerUpdateReason.IPV4_FALLBACK -> {
                     updateActiveTunnel(tunnelId) { it.copy(isFallenBackToIpv4ForNetwork = true) }
@@ -660,13 +660,18 @@ class TunnelBackend(
                     updateActiveTunnel(tunnelId) { it.copy(isFallenBackToIpv4ForNetwork = false) }
                     if (reason == PeerUpdateReason.NETWORK_CHANGE_RESET) return
                 }
-                PeerUpdateReason.DDNS_CHECK -> Unit
+                PeerUpdateReason.DDNS_CHECK -> {
+                    forceDnsMode =
+                        DnsBoostrapMode.Custom(
+                            DnsBoostrapConfig.DoH(upstream = DnsBoostrapConfig.DEFAULT_DOH_UPSTREAM)
+                        )
+                }
             }
 
             val updatedActiveTunnel = _status.value.activeTunnels[tunnelId] ?: return
             val tunnel = updatedActiveTunnel.tunnel ?: return
 
-            val results = endpointResolver.resolvePeers(mode)
+            val results = endpointResolver.resolvePeers(mode, forceDnsMode)
             if (results.isEmpty()) return
 
             val networkHasIpv6 = stableNetworkEngine.stableState.value?.state?.hasIpv6 == true
@@ -719,7 +724,6 @@ class TunnelBackend(
     companion object {
         private const val DDNS_MIN_CHECK_INTERVAL = 30_000L
         private const val DDNS_FAILURE_WINDOW = 15_000L
-        private const val DDNS_STABILITY_WINDOW = 15_000L
         private const val IPV4_FALLBACK_FAILURE_COUNT = 4
         private const val IPV4_FALLBACK_FAILURE_DURATION = 10_000L
         private const val RECOVERY_STABILITY_WINDOW = 5_000L

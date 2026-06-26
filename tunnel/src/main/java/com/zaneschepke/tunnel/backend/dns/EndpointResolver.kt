@@ -21,62 +21,63 @@ class EndpointResolver(
     private val getDnsMode: () -> DnsBoostrapMode,
     private val isKillSwitchEnabled: () -> Boolean,
 ) {
-    suspend fun resolvePeers(mode: BackendMode): Map<PublicKey, DnsBootstrapResult> =
-        coroutineScope {
-            val peersToResolve = mode.config.peers.filter { !it.isStaticallyConfigured }
-            if (peersToResolve.isEmpty()) return@coroutineScope emptyMap()
+    suspend fun resolvePeers(
+        mode: BackendMode,
+        forceDnsMode: DnsBoostrapMode? = null,
+    ): Map<PublicKey, DnsBootstrapResult> = coroutineScope {
+        val peersToResolve = mode.config.peers.filter { !it.isStaticallyConfigured }
+        if (peersToResolve.isEmpty()) return@coroutineScope emptyMap()
 
-            val results = mutableMapOf<PublicKey, DnsBootstrapResult>()
-            stableNetworkEngine.stableState.first { it?.state?.activeNetwork?.network != null }
+        val results = mutableMapOf<PublicKey, DnsBootstrapResult>()
+        stableNetworkEngine.stableState.first { it?.state?.activeNetwork?.network != null }
 
-            var delayMs = 500L
+        var delayMs = 500L
 
-            while (isActive) {
-                val snapshot = stableNetworkEngine.stableState.value?.state
-                val network = snapshot?.activeNetwork?.network ?: continue
+        while (isActive) {
+            val snapshot = stableNetworkEngine.stableState.value?.state
+            val network = snapshot?.activeNetwork?.network ?: continue
 
-                val dnsMode = getDnsMode()
-                val bypassNeeded = mode is BackendMode.Vpn || isKillSwitchEnabled()
-                var progressed = false
+            val dnsMode = forceDnsMode ?: getDnsMode()
+            val bypassNeeded = mode is BackendMode.Vpn || isKillSwitchEnabled()
+            var progressed = false
 
-                for (peer in peersToResolve) {
-                    if (results.containsKey(peer.publicKey)) continue
-                    val host = peer.endpoint?.substringBeforeLast(":") ?: continue
+            for (peer in peersToResolve) {
+                if (results.containsKey(peer.publicKey)) continue
+                val host = peer.endpoint?.substringBeforeLast(":") ?: continue
 
-                    val dnsResult =
-                        when (dnsMode) {
-                            is DnsBoostrapMode.Custom -> {
-                                resolveWithCustomConfig(dnsMode.config, host, bypassNeeded)
-                            }
-                            is DnsBoostrapMode.System -> {
-                                resolveWithSystemStrategy(snapshot, network, host, bypassNeeded)
-                            }
+                val dnsResult =
+                    when (dnsMode) {
+                        is DnsBoostrapMode.Custom -> {
+                            resolveWithCustomConfig(dnsMode.config, host, bypassNeeded)
                         }
-
-                    if (
-                        dnsResult != null &&
-                            (dnsResult.ipv4.isNotEmpty() || dnsResult.ipv6.isNotEmpty())
-                    ) {
-                        results[peer.publicKey] =
-                            dnsResult.copy(ipv6 = dnsResult.ipv6.map { "[$it]" })
-                        progressed = true
+                        is DnsBoostrapMode.System -> {
+                            resolveWithSystemStrategy(snapshot, network, host, bypassNeeded)
+                        }
                     }
-                }
 
-                if (results.keys.containsAll(peersToResolve.map { it.publicKey })) {
-                    Timber.d("All peers resolved")
-                    return@coroutineScope results
-                }
-
-                if (!progressed) {
-                    delay(delayMs.milliseconds)
-                    delayMs = (delayMs * 2).coerceAtMost(MAX_BACKOFF)
-                } else {
-                    delayMs = 500L // reset after we have progressed
+                if (
+                    dnsResult != null &&
+                        (dnsResult.ipv4.isNotEmpty() || dnsResult.ipv6.isNotEmpty())
+                ) {
+                    results[peer.publicKey] = dnsResult.copy(ipv6 = dnsResult.ipv6.map { "[$it]" })
+                    progressed = true
                 }
             }
-            return@coroutineScope results
+
+            if (results.keys.containsAll(peersToResolve.map { it.publicKey })) {
+                Timber.d("All peers resolved")
+                return@coroutineScope results
+            }
+
+            if (!progressed) {
+                delay(delayMs.milliseconds)
+                delayMs = (delayMs * 2).coerceAtMost(MAX_BACKOFF)
+            } else {
+                delayMs = 500L // reset after we have progressed
+            }
         }
+        return@coroutineScope results
+    }
 
     private suspend fun resolveWithSystemStrategy(
         snapshot: ConnectivityState,
