@@ -44,6 +44,8 @@ class VpnService : android.net.VpnService(), KillSwitch, SocketProtector {
     @Volatile private var hevBridgeFd: ParcelFileDescriptor? = null
     @Volatile private var vpnTunFd: ParcelFileDescriptor? = null
 
+    @Volatile private var currentKillSwitchConfig: KillSwitchConfig? = null
+
     override fun onCreate() {
         serviceHolder.set(this)
         super.onCreate()
@@ -187,10 +189,17 @@ class VpnService : android.net.VpnService(), KillSwitch, SocketProtector {
     private fun disableKillSwitch() {
         hevBridgeFd?.close()
         hevBridgeFd = null
+        currentKillSwitchConfig = null
     }
 
     override fun setKillSwitch(config: KillSwitchConfig?) {
         if (config == null) return disableKillSwitch()
+
+        if (hevBridgeFd != null && currentKillSwitchConfig == config) {
+            Timber.d("Kill Switch already active with identical config, skipping")
+            return
+        }
+
         hevBridgeFd?.close()
         val intent = backend.applicationProvider.createVpnConfigurePendingIntent(this@VpnService)
         hevBridgeFd =
@@ -217,6 +226,7 @@ class VpnService : android.net.VpnService(), KillSwitch, SocketProtector {
                     addDnsServer(DEFAULT_DNS_SERVER)
                 }
                 .establish()
+        currentKillSwitchConfig = config
     }
 
     fun createTunInterface(tunnel: Tunnel, config: Config) {

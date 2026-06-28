@@ -9,10 +9,12 @@ import com.zaneschepke.wireguardautotunnel.domain.enums.TunnelMode
 import com.zaneschepke.wireguardautotunnel.domain.events.TunnelActionEvent
 import com.zaneschepke.wireguardautotunnel.domain.model.DnsSettings
 import com.zaneschepke.wireguardautotunnel.domain.model.GeneralSettings
+import com.zaneschepke.wireguardautotunnel.domain.model.LockdownSettings
 import com.zaneschepke.wireguardautotunnel.domain.model.MonitoringSettings
 import com.zaneschepke.wireguardautotunnel.domain.model.ProxySettings
 import com.zaneschepke.wireguardautotunnel.domain.model.TunnelConfig
 import com.zaneschepke.wireguardautotunnel.domain.repository.GeneralSettingRepository
+import com.zaneschepke.wireguardautotunnel.domain.repository.LockdownSettingsRepository
 import com.zaneschepke.wireguardautotunnel.domain.repository.MonitoringSettingsRepository
 import com.zaneschepke.wireguardautotunnel.domain.repository.ProxySettingsRepository
 import com.zaneschepke.wireguardautotunnel.domain.repository.TunnelRepository
@@ -44,6 +46,7 @@ class TunnelCoordinator(
     dnsSettingsRepository: RoomDnsSettingsRepository,
     monitoringSettingsRepository: MonitoringSettingsRepository,
     proxyRepository: ProxySettingsRepository,
+    lockdownModeRepository: LockdownSettingsRepository,
     scope: CoroutineScope,
 ) {
 
@@ -66,6 +69,7 @@ class TunnelCoordinator(
         val dns: DnsSettings,
         val monitoring: MonitoringSettings,
         val proxy: ProxySettings,
+        val lockdown: LockdownSettings,
     )
 
     private val runtimeSettingsSnapshot =
@@ -74,12 +78,14 @@ class TunnelCoordinator(
             dnsSettingsRepository.flow,
             monitoringSettingsRepository.flow,
             proxyRepository.flow,
-        ) { general, dns, monitoring, proxy ->
+            lockdownModeRepository.flow,
+        ) { general, dns, monitoring, proxy, lockdown ->
             RuntimeSettingsSnapshot(
                 general = general,
                 dns = dns,
                 monitoring = monitoring,
                 proxy = proxy,
+                lockdown = lockdown,
             )
         }
 
@@ -149,6 +155,7 @@ class TunnelCoordinator(
         val dnsSettings = snapshot.dns
         val proxySettings = snapshot.proxy
         val monitoringSettings = snapshot.monitoring
+        val lockdownSettings = snapshot.lockdown
 
         val config = tunnelConfig.getConfig()
         val policy =
@@ -184,8 +191,10 @@ class TunnelCoordinator(
                 }
 
                 TunnelMode.LOCK_DOWN -> {
-
-                    BackendMode.Proxy.KillSwitchPrimary(runConfig)
+                    BackendMode.Proxy.KillSwitchPrimary(
+                        runConfig,
+                        lockdownSettings.toKillSwitchConfig(),
+                    )
                 }
             }
 

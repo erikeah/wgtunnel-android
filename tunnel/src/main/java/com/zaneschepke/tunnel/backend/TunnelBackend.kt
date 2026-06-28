@@ -193,7 +193,8 @@ class TunnelBackend(
     private suspend fun setupServiceForMode(tunnel: Tunnel, mode: BackendMode) {
         when (mode) {
             is BackendMode.Proxy.KillSwitchPrimary -> {
-                serviceHolder.ensureVpnProtectorRegistered()
+                val service = serviceHolder.ensureVpnProtectorRegistered()
+                service.setKillSwitch(mode.killSwitchConfig)
             }
             is BackendMode.Proxy.Standard -> {
                 serviceHolder.getTunnelService()

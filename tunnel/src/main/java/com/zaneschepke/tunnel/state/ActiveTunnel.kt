@@ -16,11 +16,4 @@ data class ActiveTunnel(
     val uptime: Long? = null,
     val lastPeerUpdateMs: Long = 0L,
     val isFallenBackToIpv4ForNetwork: Boolean = false,
-) {
-    val isPeerUpdating: Boolean
-        get() = System.currentTimeMillis() - lastPeerUpdateMs < PEER_UPDATE_GRACE_MS
-
-    companion object {
-        private const val PEER_UPDATE_GRACE_MS = 8_000L
-    }
-}
+)
