@@ -33,6 +33,8 @@ GO_HASH_darwin-amd64 := 69bef555e114b4a2252452b6e7049afc31fbdf2d39790b669165e895
 GO_HASH_darwin-arm64 := 27973684b515eaf461065054e6b572d9390c05e69ba4a423076c160165336470
 GO_HASH_linux-amd64 := 77e5da33bb72aeaef1ba4418b6fe511bc4d041873cbf82e5aa6318740df98717
 
+GO_SRCS := $(shell find . -path './build' -prune -o -name '*.go' -print)
+
 default: $(DESTDIR)/libam-go.so
 
 $(GRADLE_USER_HOME)/caches/golang/$(GO_TARBALL):
@@ -52,7 +54,7 @@ $(BUILDDIR)/go-$(GO_VERSION)/.prepared: $(GRADLE_USER_HOME)/caches/golang/$(GO_T
 	touch "$@"'
 
 $(DESTDIR)/libam-go.so: export PATH := $(BUILDDIR)/go-$(GO_VERSION)/bin/:$(PATH)
-$(DESTDIR)/libam-go.so: $(BUILDDIR)/go-$(GO_VERSION)/.prepared go.mod
+$(DESTDIR)/libam-go.so: $(GO_SRCS) go.mod go.sum $(BUILDDIR)/go-$(GO_VERSION)/.prepared
 	go build -tags linux,notest,cgo -ldflags="-X github.com/amnezia-vpn/amneziawg-go/ipc.socketDirectory=/data/data/$(ANDROID_PACKAGE_NAME)/cache/amneziawg -buildid=" -v -trimpath -buildvcs=false -o "$@" -buildmode c-shared
 
 .DELETE_ON_ERROR:

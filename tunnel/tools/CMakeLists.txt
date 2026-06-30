@@ -24,8 +24,19 @@ target_include_directories(libam.so PUBLIC
 target_compile_options(libam.so PUBLIC -std=gnu11 -DRUNSTATEDIR=\"/data/data/${ANDROID_PACKAGE_NAME}/cache\")
 
 # Amnezia userspace go build
-add_custom_target(libam-go.so
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/libwg-go"
+set(LIBWG_GO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libwg-go")
+file(GLOB_RECURSE LIBWG_GO_SRCS
+    "${LIBWG_GO_DIR}/*.go"
+    "${LIBWG_GO_DIR}/*.c"
+    "${LIBWG_GO_DIR}/*.h"
+)
+list(APPEND LIBWG_GO_SRCS
+    "${LIBWG_GO_DIR}/go.mod"
+    "${LIBWG_GO_DIR}/go.sum"
+)
+add_custom_command(
+    OUTPUT ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libam-go.so
+    WORKING_DIRECTORY "${LIBWG_GO_DIR}"
     COMMENT "Building amneziawg-go"
     VERBATIM
     COMMAND "${ANDROID_HOST_PREBUILTS}/bin/make"
@@ -39,11 +50,8 @@ add_custom_target(libam-go.so
         TARGET=${CMAKE_C_COMPILER_TARGET}
         DESTDIR=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
         BUILDDIR=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/../generated-src
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/libwg-go/main.go
-            ${CMAKE_CURRENT_SOURCE_DIR}/libwg-go/vpn/vpn.go
-            ${CMAKE_CURRENT_SOURCE_DIR}/libwg-go/vpn/vpn_jni.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/libwg-go/proxy/proxy.go
-            ${CMAKE_CURRENT_SOURCE_DIR}/libwg-go/proxy/proxy_jni.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/libwg-go/dns/dns.go
-            ${CMAKE_CURRENT_SOURCE_DIR}/libwg-go/dns/dns_jni.c
+    DEPENDS ${LIBWG_GO_SRCS}
+)
+add_custom_target(libam-go.so ALL
+    DEPENDS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libam-go.so
 )

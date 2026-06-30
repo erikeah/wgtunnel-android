@@ -57,7 +57,7 @@ internal class WireGuardTunnelEngine(private val serviceHolder: ServiceHolder) :
                 }
                 is BackendMode.Vpn -> {
                     val service = serviceHolder.getVpnService()
-                    startVpnTunnel(ifName, mode.config, service.detachVpnTunnelFd())
+                    startVpnTunnel(ifName, mode, service.detachVpnTunnelFd())
                 }
             }
 
@@ -136,11 +136,33 @@ internal class WireGuardTunnelEngine(private val serviceHolder: ServiceHolder) :
         VpnBackend.awgTurnOff(handle)
     }
 
-    private fun startVpnTunnel(ifName: String, config: Config, fd: Int?): Int {
+    private fun startVpnTunnel(ifName: String, mode: BackendMode.Vpn, fd: Int?): Int {
         val tunFd = fd ?: throw BackendException.Unauthorized("Failed to create tun interface")
 
+        val config =
+            if (mode.extendedDns == null) {
+                mode.config.copy(
+                    `interface` = mode.config.`interface`.copy(
+                        dns = mode.config.`interface`.dns
+                            ?.split(",")
+                            ?.map { it.trim() }
+                            ?.filter { !it.startsWith("~") }
+                            ?.takeIf { it.isNotEmpty() }
+                            ?.joinToString(", ")
+                    )
+                )
+            } else {
+                mode.config
+            }
+
         val handle =
-            VpnBackend.awgTurnOn(ifName, tunFd, config.asQuickString(), serviceHolder.uapiPath)
+            VpnBackend.awgTurnOn(
+                ifName,
+                tunFd,
+                config.asQuickString(),
+                serviceHolder.uapiPath,
+                mode.extendedDns?.systemDnsServers ?: "",
+            )
         if (handle < 0) {
             throw BackendException.InternalError("Internal native error with code: $handle")
         }

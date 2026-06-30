@@ -23,6 +23,7 @@ fun Entity.toDomain(): Domain =
         isGlobalAmneziaEnabled = isGlobalAmneziaEnabled,
         tunnelScriptingEnabled = tunnelScriptingEnabled,
         seamlessRoamingEnabled = seamlessRoamingEnabled,
+        isExtendedDnsEnabled = isExtendedDnsEnabled,
     )
 
 fun Domain.toEntity(): Entity =
@@ -44,4 +45,5 @@ fun Domain.toEntity(): Entity =
         isGlobalAmneziaEnabled = isGlobalAmneziaEnabled,
         tunnelScriptingEnabled = tunnelScriptingEnabled,
         seamlessRoamingEnabled = seamlessRoamingEnabled,
+        isExtendedDnsEnabled = isExtendedDnsEnabled,
     )

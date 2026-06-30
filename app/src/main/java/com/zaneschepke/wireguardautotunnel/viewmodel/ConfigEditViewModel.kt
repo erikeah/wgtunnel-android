@@ -127,16 +127,20 @@ class ConfigEditViewModel(
 
         runCatching {
                 val config = state.draft.config.buildConfig(state.draft.tunnelName)
-
-                config.validate()
-
-                val quickConfig = config.asQuickString()
+                val sanitizedDns =
+                    config.`interface`.dns
+                        ?.split(",")
+                        ?.map { it.trim() }
+                        ?.filter { !it.startsWith("~") }
+                        ?.takeIf { it.isNotEmpty() }
+                        ?.joinToString(", ")
+                config.copy(`interface` = config.`interface`.copy(dns = sanitizedDns)).validate()
 
                 val tunnelConfig =
                     if (tunnelId == null) {
-                        TunnelConfig.tunnelConfFromQuick(quickConfig, state.draft.tunnelName)
+                        TunnelConfig.tunnelConfFromQuick(config.asQuickString(), state.draft.tunnelName)
                     } else {
-                        state.tunnel?.copy(name = state.draft.tunnelName, quickConfig = quickConfig)
+                        state.tunnel?.copy(name = state.draft.tunnelName, quickConfig = config.asQuickString())
                     }
 
                 tunnelConfig?.let {
@@ -153,12 +157,24 @@ class ConfigEditViewModel(
                         tunnelCoordinator.startTunnel(it)
                     }
 
-                    postSideEffect(
-                        GlobalSideEffect.Snackbar(
-                            StringValue.StringResource(R.string.config_changes_saved),
-                            ToastType.Success,
+                    val hasExtendedDnsEntries =
+                        state.draft.config.`interface`.dnsServers
+                            .split(",").any { it.trim().startsWith("~") }
+                    if (hasExtendedDnsEntries && !settingsRepository.getGeneralSettings().isExtendedDnsEnabled) {
+                        postSideEffect(
+                            GlobalSideEffect.Snackbar(
+                                StringValue.StringResource(R.string.config_changes_saved_extended_dns_without_effect),
+                                ToastType.Info,
+                            )
                         )
-                    )
+                    } else {
+                        postSideEffect(
+                            GlobalSideEffect.Snackbar(
+                                StringValue.StringResource(R.string.config_changes_saved),
+                                ToastType.Success,
+                            )
+                        )
+                    }
 
                     postSideEffect(GlobalSideEffect.PopBackStack)
                 }

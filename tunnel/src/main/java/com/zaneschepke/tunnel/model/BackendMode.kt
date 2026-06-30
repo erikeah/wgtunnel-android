@@ -21,7 +21,10 @@ sealed class BackendMode {
         }
     }
 
-    data class Vpn(override val config: Config) : BackendMode() {
+    data class Vpn(
+        override val config: Config,
+        val extendedDns: ExtendedDnsConfig? = null,
+    ) : BackendMode() {
         override fun withConfig(config: Config) = copy(config = config)
     }
 }

@@ -41,12 +41,22 @@ func init() {
 }
 
 //export awgTurnOn
-func awgTurnOn(interfaceName string, tunFd int32, settings string, uapiPath string) int32 {
+func awgTurnOn(interfaceName string, tunFd int32, settings string, uapiPath string, systemDnsServers string) int32 {
+	settings = strings.Clone(settings)
+	systemDnsServers = strings.Clone(systemDnsServers)
 	tunnel, name, err := tun.CreateUnmonitoredTUNFromFD(int(tunFd))
 	if err != nil {
 		unix.Close(int(tunFd))
 		shared.LogError(tag, "CreateUnmonitoredTUNFromFD: %v", err)
 		return -1
+	}
+
+	var dnsWrapper *extendedDnsWrapper
+	extendedDnsConfig := extractDnsFromConfig(settings)
+	if extendedDnsConfig != "" {
+		shared.LogDebug(tag, "Extended DNS enabled, wrapping TUN device")
+		dnsWrapper = newExtendedDnsWrapper(tunnel, extendedDnsConfig, systemDnsServers)
+		tunnel = dnsWrapper
 	}
 
 	conf, err := wireproxyawg.ParseConfigString(settings)
@@ -144,6 +154,11 @@ func awgTurnOn(interfaceName string, tunFd int32, settings string, uapiPath stri
 		uapi:   uapi,
 	}
 	tunnelMu.Unlock()
+
+	if dnsWrapper != nil {
+		registerDnsWrapper(handle, dnsWrapper)
+	}
+
 	return handle
 }
 
@@ -196,6 +211,8 @@ func awgTurnOff(tunnelHandle int32) {
 
 	tunnelMu.Unlock()
 
+	unregisterDnsWrapper(tunnelHandle)
+
 	if handle.uapi != nil {
 		handle.uapi.Close()
 	}
@@ -245,6 +262,24 @@ func awgTriggerBindUpdate(handle int32) {
 		shared.LogDebug(tag, "Calling BindUpdate on VPN handle %d", handle)
 		h.device.BindUpdate()
 	}
+}
+
+//export awgUpdateSystemDns
+func awgUpdateSystemDns(tunnelHandle int32, systemDnsServers string) int32 {
+	dnsMu.RLock()
+	wrapper, ok := dnsWrappers[tunnelHandle]
+	dnsMu.RUnlock()
+	if !ok {
+		shared.LogDebug(tag, "Extended DNS not enabled for handle %d", tunnelHandle)
+		return -1
+	}
+
+	systemDnsServers = strings.Clone(systemDnsServers)
+	servers := strings.Split(systemDnsServers, ",")
+
+	wrapper.setSystemDnsServers(servers)
+	shared.LogDebug(tag, "Updated system DNS servers of %d: server(s)=%v", tunnelHandle, servers)
+	return 0
 }
 
 //export awgVersion

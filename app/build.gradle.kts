@@ -194,6 +194,13 @@ androidComponents {
     }
 }
 
+tasks.configureEach {
+    if (name.matches(Regex("merge.*(JniLib|NativeLib).*"))) {
+        val tunnelCopy = project(":tunnel").tasks.matching { it.name.matches(Regex("copy.*JniLibsProjectOnly")) }
+        dependsOn(tunnelCopy)
+    }
+}
+
 dependencies {
     implementation(project(":logcatter"))
     implementation(project(":networkmonitor"))

@@ -123,4 +123,16 @@ class SettingsViewModel(
     fun setAlreadyDonated(to: Boolean) = intent {
         settingsRepository.upsert(state.settings.copy(alreadyDonated = to))
     }
+
+    fun setExtendedDnsEnabled(enabled: Boolean) = intent {
+        settingsRepository.upsert(state.settings.copy(isExtendedDnsEnabled = enabled))
+        if (enabled) {
+            postSideEffect(
+                GlobalSideEffect.Snackbar(
+                    StringValue.StringResource(R.string.extended_dns_ipv6_not_supported),
+                    ToastType.Warning,
+                )
+            )
+        }
+    }
 }

@@ -32,6 +32,7 @@
     <string name="exclude">Exclude</string>
     <string name="include">Include</string>
     <string name="config_changes_saved">Configuration changes saved.</string>
+    <string name="config_changes_saved_extended_dns_without_effect">Subdomain matching rules have no effect until extended DNS resolver is enabled. Configuration changes saved.</string>
     <string name="public_key">Public key</string>
     <string name="addresses">Addresses</string>
     <string name="dns_servers">DNS servers</string>
@@ -404,6 +405,8 @@
     <string name="toggle_sensitive_data_visibility">Toggle sensitive data visibility</string>
     <string name="ipv6_settings">IPv6 settings</string>
     <string name="automation">Automation</string>
+    <string name="extended_dns_title">Extended DNS resolver</string>
+    <string name="extended_dns_description">Intercept DNS queries and route them based on match rules configured in the tunnel config</string>
     <string name="peer_resolution">Peer Resolution</string>
     <string name="resolution_method">Resolution method</string>
     <string name="dot">DNS over TLS (DoT)</string>
@@ -422,6 +425,8 @@
     <string name="private_dns_hostname">Private DNS: hostname (%1$s)</string>
     <string name="system_dns_servers">Servers: %1$s</string>
     <string name="no_system_dns_detected">No system DNS detected</string>
+    <string name="private_dns_warning">Private DNS is active. Extended DNS resolver may not intercept DNS queries when Private DNS is enabled.</string>
+    <string name="extended_dns_ipv6_not_supported">IPv6 is not supported when Extended DNS resolver is enabled</string>
     <!-- Tunnel states -->
     <string name="tunnel_state_connected">Connected</string>
     <string name="tunnel_state_resolving_dns">Resolving DNS</string>

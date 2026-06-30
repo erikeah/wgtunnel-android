@@ -55,6 +55,17 @@ android {
     }
 }
 
+tasks.matching { it.name.startsWith("buildCMake") }.configureEach {
+    doFirst {
+        delete(fileTree(layout.buildDirectory.dir("intermediates/library_jni")) { include("**/libam-go.so") })
+        delete(fileTree(layout.buildDirectory.dir("intermediates/merged_native_libs")) { include("**/libam-go.so") })
+    }
+}
+
+tasks.matching { it.name.contains("JniLib") || it.name.contains("NativeLib") }.configureEach {
+    dependsOn(tasks.matching { it.name.startsWith("buildCMake") })
+}
+
 dependencies {
     implementation(project(":hevtunnel"))
     api(project(":pinger"))

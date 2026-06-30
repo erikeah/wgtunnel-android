@@ -36,4 +36,7 @@ data class GeneralSettings(
     val tunnelScriptingEnabled: Boolean = true,
     @ColumnInfo(name = "seamless_roaming_enabled", defaultValue = "0")
     val seamlessRoamingEnabled: Boolean = true,
+
+    @ColumnInfo(name = "is_extended_dns_enabled", defaultValue = "0")
+    val isExtendedDnsEnabled: Boolean = false,
 )

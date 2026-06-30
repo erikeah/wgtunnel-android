@@ -1,5 +1,8 @@
 package com.zaneschepke.tunnel.backend
 
+import android.content.Context
+import android.net.ConnectivityManager
+import java.net.Inet4Address
 import com.zaneschepke.networkmonitor.ActiveNetwork
 import com.zaneschepke.networkmonitor.StableNetworkEngine
 import com.zaneschepke.tunnel.ApplicationProvider
@@ -14,8 +17,8 @@ import com.zaneschepke.tunnel.model.DnsBootstrapResult
 import com.zaneschepke.tunnel.model.Host
 import com.zaneschepke.tunnel.model.KillSwitchConfig
 import com.zaneschepke.tunnel.model.PublicKey
-import com.zaneschepke.tunnel.service.ServiceHolder
 import com.zaneschepke.tunnel.service.VpnService
+import com.zaneschepke.tunnel.service.ServiceHolder
 import com.zaneschepke.tunnel.state.ActiveTunnel
 import com.zaneschepke.tunnel.state.BackendStatus
 import com.zaneschepke.tunnel.state.BootstrapState
@@ -137,18 +140,29 @@ class TunnelBackend(
                     if (scriptsEnabled)
                         mode.config.`interface`.preUp?.let { runScripts(it, tunnel.id) }
 
-                    setupServiceForMode(tunnel, mode)
+                    val effectiveMode =
+                        if (mode is BackendMode.Vpn && mode.extendedDns != null) {
+                            mode.copy(extendedDns = mode.extendedDns.copy(systemDnsServers = getSystemDnsServers()))
+                        } else {
+                            mode
+                        }
 
-                    if (hasDynamicEndpoints(mode)) {
-                        pendingResolutionJobs[tunnel.id] = startTunnelBootstrapJob(tunnel, mode)
+                    setupServiceForMode(tunnel, effectiveMode)
+
+                    if (hasDynamicEndpoints(effectiveMode)) {
+                        pendingResolutionJobs[tunnel.id] =
+                            startTunnelBootstrapJob(tunnel, effectiveMode)
                     } else {
-                        val result = engine.start(tunnel, mode)
+                        val result = engine.start(tunnel, effectiveMode)
                         onEngineStartResult(tunnel.id, result)
 
                         if (scriptsEnabled) {
-                            mode.config.`interface`.postUp?.let { runScripts(it, tunnel.id) }
+                            effectiveMode.config.`interface`.postUp?.let {
+                                runScripts(it, tunnel.id)
+                            }
                         }
-                        tunnelJobs[tunnel.id] = startTunnelJobs(result.handle, tunnel, mode)
+                        tunnelJobs[tunnel.id] =
+                            startTunnelJobs(result.handle, tunnel, effectiveMode)
                     }
                 }
                 .onFailure { cleanup(tunnel.id) }
@@ -266,7 +280,11 @@ class TunnelBackend(
             }
             is BackendMode.Vpn -> {
                 val service = serviceHolder.ensureVpnProtectorRegistered()
-                service.createTunInterface(tunnel, mode.config)
+                service.createTunInterface(
+                    tunnel,
+                    mode.config,
+                    extendedDnsEnabled = mode.extendedDns != null,
+                )
             }
         }
     }
@@ -477,6 +495,10 @@ class TunnelBackend(
                     }
                 }
 
+                if (mode is BackendMode.Vpn && mode.extendedDns != null) {
+                    startExtendedDnsUpdateJob(handle, tunnel.id)
+                }
+
                 awaitCancellation()
             }
         }
@@ -516,6 +538,22 @@ class TunnelBackend(
                     delay(DDNS_MIN_CHECK_INTERVAL.milliseconds)
                 }
             }
+    }
+
+    private fun CoroutineScope.startExtendedDnsUpdateJob(handle: Int, tunnelId: Int) = launch {
+        var currentNetworkKey: String? = null
+
+        stableNetworkEngine.stableState.filterNotNull().collect { snapshot ->
+            val newKey = snapshot.key
+            if (newKey != currentNetworkKey) {
+                currentNetworkKey = newKey
+                val newDns = getSystemDnsServers()
+                if (newDns.isNotBlank()) {
+                    Timber.d("Network changed ($newKey), updating extended DNS fallback: $newDns")
+                    VpnBackend.awgUpdateSystemDns(handle, newDns)
+                }
+            }
+        }
     }
 
     private fun findEndpointMismatches(
@@ -756,6 +794,22 @@ class TunnelBackend(
             } else {
                 Timber.d("No mismatches found, skipping event emission.")
             }
+        }
+    }
+
+    private fun getSystemDnsServers(): String {
+        return try {
+            val cm =
+                serviceHolder.context.getSystemService(Context.CONNECTIVITY_SERVICE)
+                    as ConnectivityManager
+            val activeNetwork = cm.activeNetwork ?: return ""
+            val lp = cm.getLinkProperties(activeNetwork) ?: return ""
+            lp.dnsServers
+                .filter { it is Inet4Address && it.hostAddress !in VpnService.FAKE_DNS_IPS }
+                .joinToString(",") { it.hostAddress ?: "" }
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to get system DNS servers")
+            ""
         }
     }
 

@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.CallSplit
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -21,6 +22,7 @@ import com.zaneschepke.wireguardautotunnel.domain.enums.TunnelMode
 import com.zaneschepke.wireguardautotunnel.ui.LocalNavController
 import com.zaneschepke.wireguardautotunnel.ui.common.button.SurfaceRow
 import com.zaneschepke.wireguardautotunnel.ui.common.button.SwitchWithDivider
+import com.zaneschepke.wireguardautotunnel.ui.common.button.ThemedSwitch
 import com.zaneschepke.wireguardautotunnel.ui.common.text.DescriptionText
 import com.zaneschepke.wireguardautotunnel.ui.navigation.Route
 import com.zaneschepke.wireguardautotunnel.ui.theme.Disabled
@@ -88,6 +90,20 @@ fun TunnelGlobalsScreen(
                     navController.push(Route.ConfigGlobal(id = it.id))
                 }
             },
+        )
+        SurfaceRow(
+            leading = { Icon(Icons.Outlined.Dns, contentDescription = null) },
+            title = stringResource(R.string.extended_dns_title),
+            trailing = {
+                ThemedSwitch(
+                    checked = uiState.settings.isExtendedDnsEnabled,
+                    onClick = viewModel::setExtendedDnsEnabled,
+                )
+            },
+            description = {
+                DescriptionText(stringResource(R.string.extended_dns_description))
+            },
+            onClick = { viewModel.setExtendedDnsEnabled(!uiState.settings.isExtendedDnsEnabled) },
         )
     }
 }

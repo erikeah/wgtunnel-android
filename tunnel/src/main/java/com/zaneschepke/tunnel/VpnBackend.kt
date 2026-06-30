@@ -19,9 +19,11 @@ internal object VpnBackend {
 
     external fun awgTriggerBindUpdate(handle: Int)
 
-    external fun awgTurnOn(ifName: String, tunFd: Int, settings: String, uapiPath: String): Int
+    external fun awgTurnOn(ifName: String, tunFd: Int, settings: String, uapiPath: String, systemDnsServers: String): Int
 
     external fun awgUpdateTunnelPeers(handle: Int, settings: String): Int
+
+    external fun awgUpdateSystemDns(handle: Int, systemDnsServers: String): Int
 
     external fun awgVersion(): String
 }

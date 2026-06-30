@@ -37,4 +37,7 @@ interface GeneralSettingsDao {
 
     @Query("UPDATE general_settings SET seamless_roaming_enabled = :enabled")
     suspend fun updateSeamlessRoaming(enabled: Boolean)
+
+    @Query("UPDATE general_settings SET is_extended_dns_enabled = :enabled")
+    suspend fun updateExtendedDnsEnabled(enabled: Boolean)
 }

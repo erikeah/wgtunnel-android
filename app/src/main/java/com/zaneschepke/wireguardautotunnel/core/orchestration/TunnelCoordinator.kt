@@ -1,9 +1,9 @@
 package com.zaneschepke.wireguardautotunnel.core.orchestration
 
 import com.zaneschepke.tunnel.model.BackendMode
+import com.zaneschepke.tunnel.model.ExtendedDnsConfig
 import com.zaneschepke.wireguardautotunnel.core.event.TunnelErrorEvent
 import com.zaneschepke.wireguardautotunnel.core.tunnel.TunnelProvider
-import com.zaneschepke.wireguardautotunnel.data.repository.RoomDnsSettingsRepository
 import com.zaneschepke.wireguardautotunnel.domain.enums.TunnelActionSource
 import com.zaneschepke.wireguardautotunnel.domain.enums.TunnelMode
 import com.zaneschepke.wireguardautotunnel.domain.events.TunnelActionEvent
@@ -13,6 +13,7 @@ import com.zaneschepke.wireguardautotunnel.domain.model.LockdownSettings
 import com.zaneschepke.wireguardautotunnel.domain.model.MonitoringSettings
 import com.zaneschepke.wireguardautotunnel.domain.model.ProxySettings
 import com.zaneschepke.wireguardautotunnel.domain.model.TunnelConfig
+import com.zaneschepke.wireguardautotunnel.domain.repository.DnsSettingsRepository
 import com.zaneschepke.wireguardautotunnel.domain.repository.GeneralSettingRepository
 import com.zaneschepke.wireguardautotunnel.domain.repository.LockdownSettingsRepository
 import com.zaneschepke.wireguardautotunnel.domain.repository.MonitoringSettingsRepository
@@ -43,7 +44,7 @@ class TunnelCoordinator(
     private val bootstrapCoordinator: AppBoostrapCoordinator,
     settingsRepository: GeneralSettingRepository,
     private val tunnelRepository: TunnelRepository,
-    dnsSettingsRepository: RoomDnsSettingsRepository,
+    dnsSettingsRepository: DnsSettingsRepository,
     monitoringSettingsRepository: MonitoringSettingsRepository,
     proxyRepository: ProxySettingsRepository,
     lockdownModeRepository: LockdownSettingsRepository,
@@ -184,7 +185,10 @@ class TunnelCoordinator(
                         return
                     }
 
-                    BackendMode.Vpn(runConfig)
+                    BackendMode.Vpn(
+                            runConfig,
+                            extendedDns = if (snapshot.general.isExtendedDnsEnabled) ExtendedDnsConfig(systemDnsServers = "") else null,
+                        )
                 }
 
                 TunnelMode.PROXY -> {

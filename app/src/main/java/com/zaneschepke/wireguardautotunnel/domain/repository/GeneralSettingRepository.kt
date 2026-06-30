@@ -25,4 +25,6 @@ interface GeneralSettingRepository {
     suspend fun updateScreenRecordingSecurity(enabled: Boolean)
 
     suspend fun updateSeamlessRoaming(enabled: Boolean)
+
+    suspend fun updateExtendedDnsEnabled(enabled: Boolean)
 }

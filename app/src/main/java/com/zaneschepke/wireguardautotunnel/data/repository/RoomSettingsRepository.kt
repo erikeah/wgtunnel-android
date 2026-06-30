@@ -49,4 +49,8 @@ class RoomSettingsRepository(private val settingsDao: GeneralSettingsDao) :
     override suspend fun updateSeamlessRoaming(enabled: Boolean) {
         settingsDao.updateSeamlessRoaming(enabled)
     }
+
+    override suspend fun updateExtendedDnsEnabled(enabled: Boolean) {
+        settingsDao.updateExtendedDnsEnabled(enabled)
+    }
 }

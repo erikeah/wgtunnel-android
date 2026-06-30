@@ -252,10 +252,24 @@ class SharedAppViewModel(
 
     fun importTunnelConfigs(configs: Map<QuickConfig, TunnelName>) = intent {
         try {
+            val hasExtendedDnsEntries =
+                configs.keys.any { config ->
+                    config.lines().any { line ->
+                        line.trimStart().startsWith("DNS =") && line.contains("~")
+                    }
+                }
             val tunnelConfigs = configs.map { (config, name) ->
                 TunnelConfig.tunnelConfFromQuick(config, name)
             }
             tunnelRepository.saveTunnelsUniquely(tunnelConfigs, state.tunnelNames.map { it.value })
+            if (hasExtendedDnsEntries && !settingsRepository.getGeneralSettings().isExtendedDnsEnabled) {
+                postSideEffect(
+                    GlobalSideEffect.Snackbar(
+                        StringValue.StringResource(R.string.config_changes_saved_extended_dns_without_effect),
+                        ToastType.Info,
+                    )
+                )
+            }
         } catch (e: Exception) {
             if (e is ConfigParseException) {
                 postSideEffect(GlobalSideEffect.Snackbar(e.asStringValue(), ToastType.Error))
@@ -373,8 +387,20 @@ class SharedAppViewModel(
 
     fun copySelectedTunnel() = intent {
         val selected = tunnelsUiState.value.selectedTunnels.firstOrNull() ?: return@intent
+        val hasExtendedDnsEntries =
+            selected.quickConfig.lines().any { line ->
+                line.trimStart().startsWith("DNS =") && line.contains("~")
+            }
         val copy = TunnelConfig.tunnelConfFromQuick(selected.quickConfig, selected.name)
         tunnelRepository.saveTunnelsUniquely(listOf(copy), state.tunnelNames.map { it.value })
+        if (hasExtendedDnsEntries && !settingsRepository.getGeneralSettings().isExtendedDnsEnabled) {
+            postSideEffect(
+                GlobalSideEffect.Snackbar(
+                    StringValue.StringResource(R.string.config_changes_saved_extended_dns_without_effect),
+                    ToastType.Info,
+                )
+            )
+        }
         clearSelectedTunnels()
     }
 

@@ -22,4 +22,5 @@ data class GeneralSettings(
     val isGlobalAmneziaEnabled: Boolean = false,
     val tunnelScriptingEnabled: Boolean = false,
     val seamlessRoamingEnabled: Boolean = false,
+    val isExtendedDnsEnabled: Boolean = false,
 )
