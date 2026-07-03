@@ -1,5 +1,6 @@
 package com.zaneschepke.tunnel.backend
 
+import com.zaneschepke.networkmonitor.ActiveNetwork
 import com.zaneschepke.networkmonitor.StableNetworkEngine
 import com.zaneschepke.tunnel.ApplicationProvider
 import com.zaneschepke.tunnel.StatusCallback
@@ -30,6 +31,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
@@ -41,7 +43,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -68,6 +72,10 @@ class TunnelBackend(
     private val _status = MutableStateFlow(BackendStatus())
     override val status: Flow<BackendStatus> = _status.asStateFlow()
 
+    private val _isSeamlessRoamingEnabled = MutableStateFlow(false)
+    override val isSeamlessRoamingEnabled: Boolean
+        get() = _isSeamlessRoamingEnabled.value
+
     private val _events = MutableSharedFlow<TunnelEvent>(extraBufferCapacity = 32)
     override val events = _events.asSharedFlow()
 
@@ -78,6 +86,7 @@ class TunnelBackend(
     private val byTunnelId = ConcurrentHashMap<Int, Int>()
     private val peerUpdateMutexes = ConcurrentHashMap<Int, Mutex>()
     private val pendingResolutionJobs = ConcurrentHashMap<Int, Job>()
+    private var seamlessRoamingJob: Job? = null
 
     private val endpointResolver =
         EndpointResolver(
@@ -145,6 +154,55 @@ class TunnelBackend(
                 }
                 .onFailure { cleanup(tunnel.id) }
         }
+
+    @OptIn(FlowPreview::class)
+    override suspend fun setSeamlessRoaming(enabled: Boolean): Result<Unit> = runCatching {
+        if (_isSeamlessRoamingEnabled.value == enabled) return@runCatching
+
+        _isSeamlessRoamingEnabled.value = enabled
+        seamlessRoamingJob?.cancel()
+        seamlessRoamingJob = null
+
+        if (enabled) {
+            seamlessRoamingJob = scope.launch {
+                stableNetworkEngine.stableState
+                    .distinctUntilChangedBy { it?.key }
+                    .map { it?.state?.activeNetwork }
+                    .debounce(300.milliseconds)
+                    .collect { network ->
+                        if (
+                            network != null &&
+                                network !is ActiveNetwork.Disconnected &&
+                                _status.value.activeTunnels.isNotEmpty()
+                        ) {
+                            Timber.d(
+                                "Seamless Roaming: Network changed to ${network.key()}, updating bind on active tunnels"
+                            )
+                            updateBindForActiveTunnels()
+                        }
+                    }
+            }
+        } else {
+            Timber.d("Seamless Roaming disabled, rebinding to remove network bind")
+            updateBindForActiveTunnels()
+        }
+    }
+
+    private suspend fun updateBindForActiveTunnels() {
+        // Take a snapshot to avoid race
+        val currentTunnels = _status.value.activeTunnels.toMap()
+
+        currentTunnels.forEach { (id, activeTunnel) ->
+            val handle = byTunnelId[id] ?: return@forEach
+            val mode = activeTunnel.mode ?: return@forEach
+
+            try {
+                engine.updateBind(handle, mode)
+            } catch (t: Throwable) {
+                Timber.w(t, "Failed to update bind for tunnel $id during bulk update")
+            }
+        }
+    }
 
     private fun startTunnelBootstrapJob(tunnel: Tunnel, mode: BackendMode) = scope.launch {
         try {

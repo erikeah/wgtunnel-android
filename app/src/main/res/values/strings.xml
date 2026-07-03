@@ -553,4 +553,6 @@
 
     <string name="local_network_permission_denied">Local network access denied. Some features may not work properly</string>
     <string name="stop_while_captive_portal">Stop tunnel while captive portal is present</string>
+    <string name="seamless_roaming">Seamless roaming</string>
+    <string name="seamless_roaming_description">Bind tunnels to the active network to improve reliability on network handoffs</string>
 </resources>

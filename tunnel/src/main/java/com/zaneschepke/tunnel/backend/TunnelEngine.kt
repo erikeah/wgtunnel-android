@@ -15,4 +15,6 @@ internal interface TunnelEngine {
     suspend fun updatePeers(handle: Int, mode: BackendMode, peers: List<PeerSection>)
 
     suspend fun getActiveConfig(handle: Int, mode: BackendMode): ActiveConfig?
+
+    suspend fun updateBind(handle: Int, mode: BackendMode)
 }

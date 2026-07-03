@@ -49,4 +49,8 @@ class TunnelBackendProvider(
     override suspend fun disableLockDown(): Result<Unit> {
         return backend.disableKillSwitch()
     }
+
+    override suspend fun setSeamlessRoaming(enabled: Boolean): Result<Unit> {
+        return backend.setSeamlessRoaming(enabled)
+    }
 }

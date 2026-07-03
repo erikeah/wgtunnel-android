@@ -3,6 +3,7 @@ package com.zaneschepke.tunnel.backend.dns
 import android.content.Context
 import android.net.DnsResolver
 import android.net.Network
+import android.net.TrafficStats
 import android.os.Build
 import android.os.CancellationSignal
 import androidx.annotation.RequiresApi
@@ -66,21 +67,40 @@ internal class AndroidNetworkResolver(private val network: Network) : PeerResolv
             val signal = CancellationSignal()
             continuation.invokeOnCancellation { signal.cancel() }
 
-            dnsResolver.query(
-                network,
-                host,
-                DnsResolver.FLAG_EMPTY,
-                Executor { it.run() },
-                signal,
-                object : DnsResolver.Callback<List<InetAddress>> {
-                    override fun onAnswer(answer: List<InetAddress>, rcode: Int) {
-                        continuation.resume(answer)
-                    }
+            val oldTag = TrafficStats.getThreadStatsTag()
+            TrafficStats.setThreadStatsTag(DNS_TRAFFIC_TAG)
 
-                    override fun onError(error: DnsResolver.DnsException) {
-                        continuation.resumeWithException(error)
-                    }
-                },
-            )
+            try {
+                dnsResolver.query(
+                    network,
+                    host,
+                    DnsResolver.FLAG_EMPTY,
+                    Executor { command ->
+                        val executorOldTag = TrafficStats.getThreadStatsTag()
+                        TrafficStats.setThreadStatsTag(DNS_TRAFFIC_TAG)
+                        try {
+                            command.run()
+                        } finally {
+                            TrafficStats.setThreadStatsTag(executorOldTag)
+                        }
+                    },
+                    signal,
+                    object : DnsResolver.Callback<List<InetAddress>> {
+                        override fun onAnswer(answer: List<InetAddress>, rcode: Int) {
+                            continuation.resume(answer)
+                        }
+
+                        override fun onError(error: DnsResolver.DnsException) {
+                            continuation.resumeWithException(error)
+                        }
+                    },
+                )
+            } finally {
+                TrafficStats.setThreadStatsTag(oldTag)
+            }
         }
+
+    companion object {
+        private const val DNS_TRAFFIC_TAG = 1000
+    }
 }

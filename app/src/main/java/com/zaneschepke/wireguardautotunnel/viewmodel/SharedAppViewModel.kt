@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dokar.sonner.ToastType
 import com.zaneschepke.wireguardautotunnel.R
+import com.zaneschepke.wireguardautotunnel.core.orchestration.TunnelBackendCoordinator
 import com.zaneschepke.wireguardautotunnel.core.orchestration.TunnelCoordinator
-import com.zaneschepke.wireguardautotunnel.core.orchestration.TunnelModeCoordinator
 import com.zaneschepke.wireguardautotunnel.domain.enums.TunnelMode
 import com.zaneschepke.wireguardautotunnel.domain.model.TunnelConfig
 import com.zaneschepke.wireguardautotunnel.domain.repository.AppStateRepository
@@ -61,7 +61,7 @@ class SharedAppViewModel(
     private val settingsRepository: GeneralSettingRepository,
     private val autoTunnelStateHolder: AutoTunnelStateHolder,
     private val selectedTunnelsRepository: SelectedTunnelsRepository,
-    private val tunnelModeCoordinator: TunnelModeCoordinator,
+    private val tunnelBackendCoordinator: TunnelBackendCoordinator,
     private val httpClient: HttpClient,
     private val fileUtils: FileUtils,
     private val networkUtils: NetworkUtils,
@@ -172,7 +172,7 @@ class SharedAppViewModel(
             }
         }
 
-        tunnelModeCoordinator.changeMode(mode)
+        tunnelBackendCoordinator.changeMode(mode)
     }
 
     fun setShouldShowDonationSnackbar(to: Boolean) = intent {

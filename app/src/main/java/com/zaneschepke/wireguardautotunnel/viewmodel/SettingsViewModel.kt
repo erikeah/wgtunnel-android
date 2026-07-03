@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.dokar.sonner.ToastType
 import com.zaneschepke.tunnel.util.RootShell
 import com.zaneschepke.wireguardautotunnel.R
+import com.zaneschepke.wireguardautotunnel.core.orchestration.TunnelBackendCoordinator
 import com.zaneschepke.wireguardautotunnel.core.orchestration.TunnelCoordinator
 import com.zaneschepke.wireguardautotunnel.core.shortcut.ShortcutManager
 import com.zaneschepke.wireguardautotunnel.domain.repository.GeneralSettingRepository
@@ -27,6 +28,7 @@ class SettingsViewModel(
     private val monitoringRepository: MonitoringSettingsRepository,
     private val globalEffectRepository: GlobalEffectRepository,
     private val tunnelCoordinator: TunnelCoordinator,
+    private val tunnelBackendCoordinator: TunnelBackendCoordinator,
 ) : ContainerHost<SettingUiState, Nothing>, ViewModel() {
 
     override val container =
@@ -112,6 +114,10 @@ class SettingsViewModel(
             )
         }
         settingsRepository.upsert(state.settings.copy(tunnelScriptingEnabled = to))
+    }
+
+    fun setSeamlessNetworkRoaming(enabled: Boolean) = intent {
+        tunnelBackendCoordinator.changeSeamlessRoaming(enabled)
     }
 
     fun setAlreadyDonated(to: Boolean) = intent {

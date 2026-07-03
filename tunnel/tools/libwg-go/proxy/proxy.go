@@ -71,12 +71,7 @@ func awgStartProxy(interfaceName string, config string, uapiPath string, bypass 
 		return -1
 	}
 
-	var bind conn.Bind
-	if bypass == 1 {
-		bind = conn.NewStdNetBindWithControl(shared.ProtectControlFunc)
-	} else {
-		bind = conn.NewStdNetBind()
-	}
+	bind := conn.NewStdNetBindWithControl(shared.ProtectControlFunc)
 
 	statusCB := func(code device.StatusCode) {
 		key := handle

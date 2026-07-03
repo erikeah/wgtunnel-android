@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.outlined.Android
+import androidx.compose.material.icons.outlined.CellWifi
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.MonitorHeart
@@ -232,6 +233,23 @@ fun SettingsScreen(
                 },
                 onClick = {
                     viewModel.setTunnelScriptedEnabled(!uiState.settings.tunnelScriptingEnabled)
+                },
+            )
+            SurfaceRow(
+                leading = { Icon(Icons.Outlined.CellWifi, contentDescription = null) },
+                title = stringResource(R.string.seamless_roaming),
+                trailing = { modifier ->
+                    ThemedSwitch(
+                        checked = uiState.settings.seamlessRoamingEnabled,
+                        onClick = { viewModel.setSeamlessNetworkRoaming(enabled = it) },
+                        modifier = modifier,
+                    )
+                },
+                description = {
+                    DescriptionText(stringResource(R.string.seamless_roaming_description))
+                },
+                onClick = {
+                    viewModel.setSeamlessNetworkRoaming(!uiState.settings.seamlessRoamingEnabled)
                 },
             )
             SurfaceRow(

@@ -5,7 +5,7 @@ import com.zaneschepke.wireguardautotunnel.domain.enums.TunnelMode
 import com.zaneschepke.wireguardautotunnel.domain.repository.GeneralSettingRepository
 import com.zaneschepke.wireguardautotunnel.domain.repository.LockdownSettingsRepository
 
-class TunnelModeCoordinator(
+class TunnelBackendCoordinator(
     private val tunnelProvider: TunnelProvider,
     private val settingsRepository: GeneralSettingRepository,
     private val lockdownRepository: LockdownSettingsRepository,
@@ -42,12 +42,16 @@ class TunnelModeCoordinator(
         when (newMode) {
             TunnelMode.LOCK_DOWN -> {
                 val lockdownSettings = lockdownRepository.getLockdownSettings()
-
                 tunnelProvider.setLockDown(lockdownSettings).getOrThrow()
             }
 
             TunnelMode.VPN,
             TunnelMode.PROXY -> Unit
         }
+    }
+
+    suspend fun changeSeamlessRoaming(enabled: Boolean) {
+        tunnelProvider.setSeamlessRoaming(enabled).getOrThrow()
+        settingsRepository.updateSeamlessRoaming(enabled)
     }
 }

@@ -106,6 +106,14 @@ internal class WireGuardTunnelEngine(private val serviceHolder: ServiceHolder) :
         return rawConfig?.let { ActiveConfig.parseFromIpc(it) }
     }
 
+    override suspend fun updateBind(handle: Int, mode: BackendMode) {
+        when (mode) {
+            is BackendMode.Proxy.KillSwitchPrimary,
+            is BackendMode.Proxy.Standard -> ProxyBackend.awgTriggerProxyBindUpdate(handle)
+            is BackendMode.Vpn -> VpnBackend.awgTriggerBindUpdate(handle)
+        }
+    }
+
     override suspend fun stop(handle: Int, mode: BackendMode) {
         when (mode) {
             is BackendMode.Proxy.Standard -> stopProxyTunnel(handle)
