@@ -101,21 +101,24 @@ configure<ApplicationExtension> {
                 "proguard-rules.pro",
             )
             signingConfig = signingConfigs.getByName(Constants.RELEASE)
-            resValue("string", "provider", "\"${Constants.APP_NAME}.provider\"")
+            manifestPlaceholders["providerAuthority"] = "${Constants.APP_NAME}.provider"
+            buildConfigField("String", "FILE_PROVIDER_AUTHORITY", "\"${Constants.APP_NAME}.provider\"")
         }
 
         debug {
             applicationIdSuffix = ".debug"
             resValue("string", "app_name", "WG Tunnel Debug")
             isDebuggable = true
-            resValue("string", "provider", "\"${Constants.APP_NAME}.provider.debug\"")
+            manifestPlaceholders["providerAuthority"] = "${Constants.APP_NAME}.provider.debug"
+            buildConfigField("String", "FILE_PROVIDER_AUTHORITY", "\"${Constants.APP_NAME}.provider.debug\"")
         }
 
         create(Constants.NIGHTLY) {
             initWith(buildTypes.getByName(Constants.RELEASE))
             applicationIdSuffix = ".nightly"
             resValue("string", "app_name", "WG Tunnel Nightly")
-            resValue("string", "provider", "\"${Constants.APP_NAME}.provider.nightly\"")
+            manifestPlaceholders["providerAuthority"] = "${Constants.APP_NAME}.provider.nightly"
+            buildConfigField("String", "FILE_PROVIDER_AUTHORITY", "\"${Constants.APP_NAME}.provider.nightly\"")
         }
     }
 
@@ -278,17 +281,6 @@ dependencies {
     implementation(libs.koin.lazy)
     implementation(libs.koin.worker)
 }
-
-tasks.register<Copy>("copyLicenseeJsonToAssets") {
-    dependsOn("licensee")
-    val outputAssets = layout.projectDirectory.dir("src/main/assets")
-    from(layout.buildDirectory.file("reports/licensee/androidFdroidRelease/artifacts.json")) {
-        rename("artifacts.json", "licenses.json")
-    }
-    into(outputAssets)
-}
-
-tasks.named("preBuild") { dependsOn("copyLicenseeJsonToAssets") }
 
 // https://gist.github.com/obfusk/61046e09cee352ae6dd109911534b12e#fix-proposed-by-linsui-disable-baseline-profiles
 tasks.configureEach {

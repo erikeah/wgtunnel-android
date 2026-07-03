@@ -156,7 +156,7 @@
 
 		<provider
 			android:name="androidx.core.content.FileProvider"
-			android:authorities="@string/provider"
+                android:authorities="${providerAuthority}"
 			android:exported="false"
 			android:grantUriPermissions="true">
 			<meta-data
@@ -177,7 +177,7 @@
         <service
             android:name=".service.tile.TunnelControlTile"
             android:exported="true"
-            android:icon="@drawable/ic_qs_logo"
+            android:icon="@drawable/qs_logo"
             android:label="@string/tunnel_control"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <meta-data
@@ -194,7 +194,7 @@
         <service
             android:name=".service.tile.AutoTunnelControlTile"
             android:exported="true"
-            android:icon="@drawable/ic_qs_logo"
+            android:icon="@drawable/qs_logo"
             android:label="@string/auto_tunnel"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <meta-data

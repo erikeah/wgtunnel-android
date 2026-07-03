@@ -10,6 +10,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import com.zaneschepke.wireguardautotunnel.BuildConfig
 import com.zaneschepke.wireguardautotunnel.MainActivity
 import com.zaneschepke.wireguardautotunnel.R
 import com.zaneschepke.wireguardautotunnel.util.Constants
@@ -148,7 +149,7 @@ fun Context.requestInstallPackagesPermission() {
 }
 
 fun Context.installApk(apkFile: File) {
-    val apkUri = FileProvider.getUriForFile(this, getString(R.string.provider), apkFile)
+    val apkUri = FileProvider.getUriForFile(this, BuildConfig.FILE_PROVIDER_AUTHORITY, apkFile)
     val intent =
         Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(apkUri, "application/vnd.android.package-archive")
