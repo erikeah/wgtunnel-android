@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.database.ContentObserver
 import android.location.LocationManager
 import android.net.ConnectivityManager
+import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
@@ -17,6 +18,7 @@ import com.zaneschepke.networkmonitor.AndroidNetworkMonitor.WifiDetectionMethod.
 import com.zaneschepke.networkmonitor.AndroidNetworkMonitor.WifiDetectionMethod.LEGACY
 import com.zaneschepke.networkmonitor.AndroidNetworkMonitor.WifiDetectionMethod.ROOT
 import com.zaneschepke.networkmonitor.AndroidNetworkMonitor.WifiDetectionMethod.SHIZUKU
+import com.zaneschepke.networkmonitor.model.LinkPropertiesSnapshot
 import com.zaneschepke.networkmonitor.shizuku.ShizukuShell
 import com.zaneschepke.networkmonitor.util.getLegacySecurityType
 import com.zaneschepke.networkmonitor.util.getWifiSecurityType
@@ -360,6 +362,10 @@ class AndroidNetworkMonitor(
             }
         }
 
+        val onLinkPropertiesChanged: (Network, LinkProperties) -> Unit = { network, linkProps ->
+            trySend(TransportEvent.LinkPropertiesChanged(network, linkProps))
+        }
+
         val wifiCallback =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && detectionMethod == DEFAULT) {
                 object : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
@@ -371,6 +377,11 @@ class AndroidNetworkMonitor(
                         network: Network,
                         caps: NetworkCapabilities,
                     ) = onCapabilitiesChanged(network, caps)
+
+                    override fun onLinkPropertiesChanged(
+                        network: Network,
+                        linkProperties: LinkProperties,
+                    ) = onLinkPropertiesChanged(network, linkProperties)
                 }
             } else {
                 object : ConnectivityManager.NetworkCallback() {
@@ -382,6 +393,11 @@ class AndroidNetworkMonitor(
                         network: Network,
                         caps: NetworkCapabilities,
                     ) = onCapabilitiesChanged(network, caps)
+
+                    override fun onLinkPropertiesChanged(
+                        network: Network,
+                        linkProperties: LinkProperties,
+                    ) = onLinkPropertiesChanged(network, linkProperties)
                 }
             }
 
@@ -565,20 +581,37 @@ class AndroidNetworkMonitor(
 
     // For multi-sim selection, prefers foreground, then validated internet, then not suspended
     private fun pickBestCellularNetworkEntry(): Map.Entry<Network, NetworkCapabilities>? {
-        if (activeCellularNetworks.value.isEmpty()) return null
+        val networksMap = activeCellularNetworks.value
+        if (networksMap.isEmpty()) return null
 
-        return activeCellularNetworks.value.entries.maxByOrNull { (_, caps) ->
+        return networksMap.entries.maxByOrNull { (_, caps) ->
+            // Network is an internal carrier MMS network
+            if (!caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)) {
+                return@maxByOrNull -1000
+            }
+
             var score = 0
+
+            // OS prefers this network if Foreground
             if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_FOREGROUND)) score += 100
+
             if (hasValidatedInternet(caps)) score += 50
+
             if (hasNotSuspended(caps)) score += 20
+
+            if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) score += 10
+
             if (
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
                     caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_CONGESTED)
             ) {
-                score += 10
+                score += 5
             }
-            if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) score += 5
+
+            // Prefer higher bandwidth network as tiebreaker
+            val bandwidthPoints = (caps.linkDownstreamBandwidthKbps / 100_000).coerceIn(0, 4)
+            score += bandwidthPoints
+
             score
         }
     }
@@ -691,12 +724,18 @@ class AndroidNetworkMonitor(
                                     fetchedSsid to fetchedSecurity
                                 }
 
+                            val linkPropsSnapshot =
+                                LinkPropertiesSnapshot.from(
+                                    connectivityManager?.getLinkProperties(wifiEvent.network)
+                                )
+
                             ActiveNetwork.Wifi(
                                 ssid,
                                 securityType,
                                 currentNetworkId,
                                 wifiEvent.network,
                                 wifiEvent.networkCapabilities,
+                                linkProperties = linkPropsSnapshot,
                             )
                         }
                         else -> {

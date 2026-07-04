@@ -3,6 +3,7 @@ package com.zaneschepke.networkmonitor
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Build
+import com.zaneschepke.networkmonitor.model.LinkPropertiesSnapshot
 import com.zaneschepke.networkmonitor.util.WifiSecurityType
 
 data class ConnectivityState(
@@ -111,6 +112,7 @@ sealed class ActiveNetwork {
         val networkId: String,
         override val network: Network?,
         override val capabilities: NetworkCapabilities? = null,
+        val linkProperties: LinkPropertiesSnapshot = LinkPropertiesSnapshot(),
     ) : ActiveNetwork()
 
     data class Cellular(

@@ -36,6 +36,8 @@ import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -50,8 +52,6 @@ import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.viewmodel.container
 import timber.log.Timber
 import xyz.teamgravity.pin_lock_compose.PinManager
-import java.io.File
-import java.io.IOException
 
 class SharedAppViewModel(
     private val appStateRepository: AppStateRepository,

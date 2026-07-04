@@ -43,7 +43,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
@@ -158,7 +157,6 @@ class TunnelBackend(
     @OptIn(FlowPreview::class)
     override suspend fun setSeamlessRoaming(enabled: Boolean): Result<Unit> = runCatching {
         if (_isSeamlessRoamingEnabled.value == enabled) return@runCatching
-
         _isSeamlessRoamingEnabled.value = enabled
         seamlessRoamingJob?.cancel()
         seamlessRoamingJob = null
@@ -166,16 +164,23 @@ class TunnelBackend(
         if (enabled) {
             seamlessRoamingJob = scope.launch {
                 stableNetworkEngine.stableState
-                    .distinctUntilChangedBy { it?.key }
+                    .distinctUntilChangedBy { stable ->
+                        when (val net = stable?.state?.activeNetwork) {
+                            is ActiveNetwork.Wifi -> {
+                                // WiFi uses key with linkProperties so AP migration is detected
+                                "${net.key()}:${net.linkProperties}"
+                            }
+                            else -> net?.key()
+                        }
+                    }
                     .map { it?.state?.activeNetwork }
-                    .debounce(300.milliseconds)
                     .collect { network ->
                         if (
                             network != null &&
                                 network !is ActiveNetwork.Disconnected &&
                                 _status.value.activeTunnels.isNotEmpty()
                         ) {
-                            Timber.d(
+                            Timber.i(
                                 "Seamless Roaming: Network changed to ${network.key()}, updating bind on active tunnels"
                             )
                             updateBindForActiveTunnels()
@@ -183,7 +188,7 @@ class TunnelBackend(
                     }
             }
         } else {
-            Timber.d("Seamless Roaming disabled, rebinding to remove network bind")
+            Timber.i("Seamless Roaming disabled, rebinding to remove network bind")
             updateBindForActiveTunnels()
         }
     }
