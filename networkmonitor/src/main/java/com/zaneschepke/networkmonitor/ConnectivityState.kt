@@ -108,6 +108,7 @@ sealed class ActiveNetwork {
 
     data class Wifi(
         val ssid: String,
+        val bssid: String,
         val securityType: WifiSecurityType?,
         val networkId: String,
         override val network: Network?,
