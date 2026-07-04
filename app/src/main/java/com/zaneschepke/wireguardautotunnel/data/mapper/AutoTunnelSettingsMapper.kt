@@ -16,7 +16,7 @@ fun Entity.toDomain(): Domain =
         isTunnelOnUnsecureEnabled = isTunnelOnUnsecureEnabled,
         wifiDetectionMethod = wifiDetectionMethod,
         startOnBoot = startOnBoot,
-        disableTunnelOnCaptivePortal = disableTunnelOnCaptivePortal
+        disableTunnelOnCaptivePortal = disableTunnelOnCaptivePortal,
     )
 
 fun Domain.toEntity(): Entity =
@@ -32,5 +32,5 @@ fun Domain.toEntity(): Entity =
         isTunnelOnUnsecureEnabled = isTunnelOnUnsecureEnabled,
         wifiDetectionMethod = wifiDetectionMethod,
         startOnBoot = startOnBoot,
-        disableTunnelOnCaptivePortal = disableTunnelOnCaptivePortal
+        disableTunnelOnCaptivePortal = disableTunnelOnCaptivePortal,
     )

@@ -29,14 +29,13 @@ import com.zaneschepke.wireguardautotunnel.util.StringValue
 import com.zaneschepke.wireguardautotunnel.util.extensions.QuickConfig
 import com.zaneschepke.wireguardautotunnel.util.extensions.TunnelName
 import com.zaneschepke.wireguardautotunnel.util.extensions.asStringValue
-import com.zaneschepke.wireguardautotunnel.util.extensions.isHtmlResponse
 import com.zaneschepke.wireguardautotunnel.util.extensions.saveTunnelsUniquely
 import com.zaneschepke.wireguardautotunnel.util.network.NetworkUtils
 import io.ktor.client.HttpClient
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsText
-import java.io.File
-import java.io.IOException
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -51,6 +50,8 @@ import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.viewmodel.container
 import timber.log.Timber
 import xyz.teamgravity.pin_lock_compose.PinManager
+import java.io.File
+import java.io.IOException
 
 class SharedAppViewModel(
     private val appStateRepository: AppStateRepository,
@@ -281,14 +282,23 @@ class SharedAppViewModel(
 
     fun importFromUrl(url: String) = intent {
         reduce { state.copy(pendingWgImportUrl = null) }
-
         try {
             httpClient.prepareGet(url).execute { response ->
                 if (response.status.value !in 200..299) {
                     throw IOException("Server returned error: ${response.status.value}")
                 }
 
-                if (response.isHtmlResponse()) {
+                val body = response.bodyAsText()
+
+                val contentType = response.contentType()
+                val isHtml =
+                    (contentType?.match(ContentType.Text.Html) == true) ||
+                        body.trimStart().let {
+                            it.startsWith("<!DOCTYPE", ignoreCase = true) ||
+                                it.startsWith("<html", ignoreCase = true)
+                        }
+
+                if (isHtml) {
                     postSideEffect(
                         GlobalSideEffect.Snackbar(
                             StringValue.StringResource(R.string.error_invalid_config_url),
@@ -297,7 +307,7 @@ class SharedAppViewModel(
                     )
                     return@execute
                 }
-                val body = response.bodyAsText()
+
                 importFromClipboard(body)
             }
         } catch (e: Exception) {
