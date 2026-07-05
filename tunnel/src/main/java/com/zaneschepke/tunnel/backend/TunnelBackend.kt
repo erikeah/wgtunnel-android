@@ -292,7 +292,7 @@ class TunnelBackend(
         byTunnelId.remove(tunnelId)
         peerUpdateMutexes.remove(tunnelId)
 
-        if (vpnTypeCount == 1) {
+        if (vpnTypeCount == 1 && !_status.value.killSwitch.enabled) {
             serviceHolder.stopVpnService()
         }
         if (proxyTypeCount == 1) {
@@ -390,7 +390,9 @@ class TunnelBackend(
         applicationProvider.refreshTile(serviceHolder.context)
         VpnBackend.setStatusCallback(null)
         serviceHolder.stopTunnelService()
-        serviceHolder.stopVpnService()
+        if (!_status.value.killSwitch.enabled) {
+            serviceHolder.stopVpnService()
+        }
         Result.success(Unit)
     }
 
