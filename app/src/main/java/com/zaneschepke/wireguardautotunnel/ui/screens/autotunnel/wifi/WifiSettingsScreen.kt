@@ -44,15 +44,15 @@ import com.zaneschepke.wireguardautotunnel.ui.common.label.GroupLabel
 import com.zaneschepke.wireguardautotunnel.ui.common.text.DescriptionText
 import com.zaneschepke.wireguardautotunnel.ui.navigation.Route
 import com.zaneschepke.wireguardautotunnel.ui.navigation.TunnelNetwork
+import com.zaneschepke.wireguardautotunnel.ui.screens.autotunnel.AutoTunnelScreenSideEffect
 import com.zaneschepke.wireguardautotunnel.ui.screens.autotunnel.wifi.components.NetworkRuleInput
-import com.zaneschepke.wireguardautotunnel.util.BssidUtils.isValidBssidPattern
-import com.zaneschepke.wireguardautotunnel.util.BssidUtils.normalizeBssid
 import com.zaneschepke.wireguardautotunnel.util.extensions.asTitleString
 import com.zaneschepke.wireguardautotunnel.util.extensions.launchAppSettings
 import com.zaneschepke.wireguardautotunnel.util.extensions.launchLocationServicesSettings
 import com.zaneschepke.wireguardautotunnel.viewmodel.AutoTunnelViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
 fun WifiSettingsScreen(viewModel: AutoTunnelViewModel = koinViewModel()) {
@@ -72,13 +72,16 @@ fun WifiSettingsScreen(viewModel: AutoTunnelViewModel = koinViewModel()) {
     var showLocationDialog by remember { mutableStateOf(false) }
     var currentSsidText by rememberSaveable { mutableStateOf("") }
     var currentBssidText by rememberSaveable { mutableStateOf("") }
-    var bssidInputError by remember { mutableStateOf<String?>(null) }
+
+    viewModel.collectSideEffect() {
+        when (it) {
+            AutoTunnelScreenSideEffect.BSSID_SAVED -> currentBssidText = ""
+            AutoTunnelScreenSideEffect.SSID_SAVED -> currentSsidText = ""
+        }
+    }
 
     LaunchedEffect(uiState.autoTunnelSettings.trustedNetworkSSIDs) { currentSsidText = "" }
-    LaunchedEffect(uiState.autoTunnelSettings.trustedNetworkBSSIDs) {
-        currentBssidText = ""
-        bssidInputError = null
-    }
+    LaunchedEffect(uiState.autoTunnelSettings.trustedNetworkBSSIDs) { currentBssidText = "" }
 
     val bssidFormatError = stringResource(R.string.invalid_bssid_format)
 
@@ -220,10 +223,7 @@ fun WifiSettingsScreen(viewModel: AutoTunnelViewModel = koinViewModel()) {
                 onDelete = { viewModel.removeTrustedNetworkName(it) },
                 currentText = currentSsidText,
                 onValueChange = { currentSsidText = it },
-                onSave = { ssid ->
-                    viewModel.saveTrustedNetworkName(ssid)
-                    currentSsidText = ""
-                },
+                onSave = { ssid -> viewModel.saveTrustedNetworkName(ssid) },
                 supportingContent = {
                     if (uiState.autoTunnelSettings.isWildcardsEnabled)
                         DescriptionText(stringResource(R.string.wildcard_wifi_desc))
@@ -235,27 +235,13 @@ fun WifiSettingsScreen(viewModel: AutoTunnelViewModel = koinViewModel()) {
                 rules = uiState.autoTunnelSettings.trustedNetworkBSSIDs,
                 onDelete = { viewModel.removeTrustedBssid(it) },
                 currentText = currentBssidText,
-                onValueChange = {
-                    currentBssidText = it
-                    bssidInputError = null
-                },
-                onSave = { bssid ->
-                    val normalized = normalizeBssid(bssid)
-                    if (isValidBssidPattern(normalized)) {
-                        viewModel.saveTrustedBssid(normalized)
-                        currentBssidText = ""
-                        bssidInputError = null
-                    } else {
-                        bssidInputError = bssidFormatError
-                    }
-                },
+                onValueChange = { currentBssidText = it },
+                onSave = { bssid -> viewModel.saveTrustedBssid(bssid) },
                 supportingContent = {
                     if (uiState.autoTunnelSettings.isWildcardsEnabled)
                         DescriptionText(stringResource(R.string.wildcard_bssid_desc))
                 },
                 placeholder = bssidHint,
-                isError = bssidInputError != null,
-                errorText = bssidInputError,
             )
 
             SurfaceRow(

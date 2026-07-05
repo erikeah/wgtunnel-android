@@ -4,6 +4,9 @@ import com.zaneschepke.networkmonitor.ActiveNetwork
 import com.zaneschepke.wireguardautotunnel.domain.events.AutoTunnelEvent
 import com.zaneschepke.wireguardautotunnel.domain.model.TunnelConfig
 import com.zaneschepke.wireguardautotunnel.domain.state.AutoTunnelState
+import com.zaneschepke.wireguardautotunnel.util.extensions.isMatchingToWildcardList
+import com.zaneschepke.wireguardautotunnel.util.extensions.transformWildcardsToRegex
+import timber.log.Timber
 
 class AutoTunnelEngine {
 
@@ -74,50 +77,142 @@ class AutoTunnelEngine {
 
         return when {
             ethernetActive && settings.isTunnelOnEthernetEnabled ->
-                resolveByPriority(state) { it.isEthernetTunnel }
+                listOfNotNull(
+                    state.tunnels.firstOrNull { it.isEthernetTunnel } ?: defaultTunnel(state)
+                )
 
             mobileActive && settings.isTunnelOnMobileDataEnabled ->
-                resolveByPriority(state) { it.isMobileDataTunnel }
+                listOfNotNull(
+                    state.tunnels.firstOrNull { it.isMobileDataTunnel } ?: defaultTunnel(state)
+                )
 
             wifiActive && settings.isTunnelOnWifiEnabled && !isWifiTrusted(state) ->
-                resolveWifiTunnels(state)
+                findPreferredWifiTunnel(state)
             else -> emptyList()
         }
     }
 
-    private fun resolveByPriority(
-        state: AutoTunnelState,
-        predicate: (TunnelConfig) -> Boolean,
-    ): List<TunnelConfig> {
-        return listOfNotNull(state.tunnels.firstOrNull(predicate) ?: defaultTunnel(state))
-    }
-
-    private fun resolveWifiTunnels(state: AutoTunnelState): List<TunnelConfig> {
+    private fun findPreferredWifiTunnel(state: AutoTunnelState): List<TunnelConfig> {
         val wifi = state.networkState.activeNetwork as? ActiveNetwork.Wifi ?: return emptyList()
+        val wildcardsEnabled = state.settings.isWildcardsEnabled
 
-        // BSSID match takes priority because it is more specific
-        val bssidMatched =
-            state.tunnels.filter { tunnel -> state.matchesNetwork(wifi.bssid, tunnel.tunnelBSSIDs) }
-        if (bssidMatched.isNotEmpty()) {
-            return bssidMatched
+        // Highest priority is exact BSSID match
+        val exactBssidMatches =
+            state.tunnels.filter { tunnel -> tunnel.tunnelBSSIDs.contains(wifi.bssid) }
+        if (exactBssidMatches.isNotEmpty()) {
+            // One support for now
+            val firstMatch = exactBssidMatches.first()
+            Timber.i("Starting tunnel ${firstMatch.name} for exact BSSID match")
+            return listOf()
         }
 
-        // SSID match second priority
-        val ssidMatched =
-            state.tunnels.filter { tunnel ->
-                state.matchesNetwork(wifi.ssid, tunnel.tunnelNetworks)
-            }
+        // Next priority is SSID match
+        val exactSsidMatches =
+            state.tunnels.filter { tunnel -> tunnel.tunnelNetworks.contains(wifi.ssid) }
 
-        return ssidMatched.ifEmpty { listOfNotNull(defaultTunnel(state)) }
+        if (exactSsidMatches.isNotEmpty()) {
+            // One supported for now
+            val firstMatch = exactSsidMatches.first()
+            Timber.i("Starting tunnel ${firstMatch.name} for exact SSID match")
+            return listOf(exactSsidMatches.first())
+        }
+
+        // Next priority is Wildcard BSSID match
+        if (wildcardsEnabled) {
+            val bestBssidMatch =
+                findBestWildcardMatchStartTunnel(
+                    tunnels = state.tunnels,
+                    value = wifi.bssid,
+                    getPatterns = { it.tunnelBSSIDs },
+                )
+            if (bestBssidMatch != null) {
+                Timber.i("Starting tunnel ${bestBssidMatch.name} for BSSID wildcard match")
+                return listOf(bestBssidMatch)
+            }
+        }
+
+        // Next priority is SSID wildcard match
+        if (wildcardsEnabled) {
+            val bestSsidMatch =
+                findBestWildcardMatchStartTunnel(
+                    tunnels = state.tunnels,
+                    value = wifi.ssid,
+                    getPatterns = { it.tunnelNetworks },
+                )
+            if (bestSsidMatch != null) {
+                Timber.i("Starting tunnel ${bestSsidMatch.name} for SSID wildcard match")
+                return listOf(bestSsidMatch)
+            }
+        }
+
+        // Fallback
+        Timber.i("No preferred tunnel match, starting the default or first tunnel")
+        return listOfNotNull(defaultTunnel(state))
+    }
+
+    private fun findBestWildcardMatchStartTunnel(
+        tunnels: List<TunnelConfig>,
+        value: String,
+        getPatterns: (TunnelConfig) -> List<String>,
+    ): TunnelConfig? {
+        return tunnels
+            .mapNotNull { tunnel ->
+                val patterns = getPatterns(tunnel)
+
+                // Check if we have any matches
+                if (!patterns.isMatchingToWildcardList(value)) {
+                    return@mapNotNull null
+                }
+
+                // Find the longest (most specific) pattern that matches
+                val longestMatchingPatternLength =
+                    patterns
+                        .filter { pattern ->
+                            // Don't consider exclude patterns
+                            if (pattern.startsWith("!")) return@filter false
+
+                            pattern.transformWildcardsToRegex().matches(value)
+                        }
+                        .maxOfOrNull { it.length } ?: 0
+
+                tunnel to longestMatchingPatternLength
+            }
+            .maxByOrNull { it.second }
+            ?.first
     }
 
     private fun isWifiTrusted(state: AutoTunnelState): Boolean {
         val wifi = state.networkState.activeNetwork as? ActiveNetwork.Wifi ?: return false
+        val settings = state.settings
 
-        val ssidTrusted = state.matchesNetwork(wifi.ssid, state.settings.trustedNetworkSSIDs)
-        val bssidTrusted = state.matchesNetwork(wifi.bssid, state.settings.trustedNetworkBSSIDs)
+        val ssidTrusted =
+            matchesTrusted(
+                value = wifi.ssid,
+                trustedList = settings.trustedNetworkSSIDs,
+                wildcardsEnabled = settings.isWildcardsEnabled,
+            )
+
+        val bssidTrusted =
+            matchesTrusted(
+                value = wifi.bssid,
+                trustedList = settings.trustedNetworkBSSIDs,
+                wildcardsEnabled = settings.isWildcardsEnabled,
+            )
 
         return ssidTrusted || bssidTrusted
+    }
+
+    private fun matchesTrusted(
+        value: String,
+        trustedList: List<String>,
+        wildcardsEnabled: Boolean,
+    ): Boolean {
+        if (trustedList.contains(value)) return true
+
+        if (wildcardsEnabled && trustedList.isMatchingToWildcardList(value)) {
+            return true
+        }
+        return false
     }
 
     private fun defaultTunnel(state: AutoTunnelState): TunnelConfig? {
