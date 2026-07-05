@@ -76,7 +76,7 @@ class AutoTunnelService : LifecycleService() {
     )
 
     @Volatile private var hasUserOverride = false
-    private var lastNetworkFingerprint: AutoTunnelState.NetworkFingerprint? = null
+    private var lastNetworkKey: String? = null
 
     @OptIn(FlowPreview::class)
     private val autoTunnelStateFlow: Flow<AutoTunnelState> by lazy {
@@ -239,14 +239,17 @@ class AutoTunnelService : LifecycleService() {
         }
 
     private fun updateFingerprintIfNeeded(state: AutoTunnelState) {
-        val currentFingerprint = state.networkFingerPrint
+        val needsBSSIDAwareness =
+            state.settings.trustedNetworkBSSIDs.isNotEmpty() ||
+                state.tunnels.any { it.tunnelBSSIDs.isNotEmpty() }
+        val networkKey = state.networkState.activeNetwork.key(needsBSSIDAwareness)
 
-        if (lastNetworkFingerprint != currentFingerprint) {
+        if (lastNetworkKey != networkKey) {
             if (hasUserOverride) {
                 Timber.d("Network fingerprint changed, clearing user override")
             }
             hasUserOverride = false
-            lastNetworkFingerprint = currentFingerprint
+            lastNetworkKey = networkKey
         }
     }
 

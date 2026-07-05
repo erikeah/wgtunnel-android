@@ -18,6 +18,8 @@ import com.zaneschepke.wireguardautotunnel.domain.sideeffect.GlobalSideEffect
 import com.zaneschepke.wireguardautotunnel.service.ServiceManager
 import com.zaneschepke.wireguardautotunnel.service.autotunnel.AutoTunnelStateHolder
 import com.zaneschepke.wireguardautotunnel.ui.state.AutoTunnelUiState
+import com.zaneschepke.wireguardautotunnel.util.BssidUtils.isValidBssidPattern
+import com.zaneschepke.wireguardautotunnel.util.BssidUtils.normalizeBssid
 import com.zaneschepke.wireguardautotunnel.util.StringValue
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapNotNull
@@ -83,6 +85,25 @@ class AutoTunnelViewModel(
         autoTunnelCoordinator.toggle()
     }
 
+    val wildcardEnabled: Boolean
+        get() = container.stateFlow.value.autoTunnelSettings.isWildcardsEnabled
+
+    val ssidHints: List<String>
+        get() =
+            if (wildcardEnabled) {
+                listOf("Office_WiFi", "Home*", "*Guest*", "!Hotel_WiFi", "Cafe?", "\\(Office\\) 5G")
+            } else {
+                listOf("Home_WiFi")
+            }
+
+    val bssidHints: List<String>
+        get() =
+            if (wildcardEnabled) {
+                listOf("AA:BB:CC:DD:EE:FF", "AA:BB:CC:*", "!AA:BB:CC:DD:EE:FF")
+            } else {
+                listOf("AA:BB:CC:DD:EE:FF")
+            }
+
     fun setAutoTunnelOnWifiEnabled(to: Boolean) = intent {
         autoTunnelRepository.upsert(state.autoTunnelSettings.copy(isTunnelOnWifiEnabled = to))
     }
@@ -107,16 +128,18 @@ class AutoTunnelViewModel(
             )
         }
         setTrustedNetworkNames(
-            (state.autoTunnelSettings.trustedNetworkSSIDs + trimmed).toMutableSet()
+            (state.autoTunnelSettings.trustedNetworkSSIDs + trimmed).toMutableList()
         )
     }
 
-    fun setTrustedNetworkNames(to: Set<String>) = intent {
+    fun setTrustedNetworkNames(to: List<String>) = intent {
         autoTunnelRepository.upsert(state.autoTunnelSettings.copy(trustedNetworkSSIDs = to))
     }
 
     fun removeTrustedNetworkName(name: String) = intent {
-        setTrustedNetworkNames((state.autoTunnelSettings.trustedNetworkSSIDs - name).toMutableSet())
+        setTrustedNetworkNames(
+            (state.autoTunnelSettings.trustedNetworkSSIDs - name).toMutableList()
+        )
     }
 
     fun setTunnelOnCellular(to: Boolean) = intent {
@@ -131,6 +154,43 @@ class AutoTunnelViewModel(
         autoTunnelRepository.upsert(state.autoTunnelSettings.copy(startOnBoot = to))
     }
 
+    fun saveTrustedBssid(bssid: String) = intent {
+        if (bssid.isBlank()) return@intent
+
+        val normalized = normalizeBssid(bssid)
+
+        if (!isValidBssidPattern(normalized)) {
+            return@intent postSideEffect(
+                GlobalSideEffect.Snackbar(
+                    StringValue.DynamicString("Invalid BSSID or pattern"),
+                    ToastType.Error,
+                )
+            )
+        }
+
+        val current = state.autoTunnelSettings.trustedNetworkBSSIDs
+
+        if (current.contains(normalized)) {
+            return@intent postSideEffect(
+                GlobalSideEffect.Snackbar(
+                    StringValue.DynamicString("BSSID already exists"),
+                    ToastType.Error,
+                )
+            )
+        }
+
+        setTrustedNetworkBSSIDs(current + normalized)
+    }
+
+    fun setTrustedNetworkBSSIDs(to: List<String>) = intent {
+        autoTunnelRepository.upsert(state.autoTunnelSettings.copy(trustedNetworkBSSIDs = to))
+    }
+
+    fun removeTrustedBssid(bssid: String) = intent {
+        val current = state.autoTunnelSettings.trustedNetworkBSSIDs
+        setTrustedNetworkBSSIDs(current - bssid)
+    }
+
     fun setPreferredMobileDataTunnel(tunnel: TunnelConfig?) = intent {
         tunnelsRepository.updateMobileDataTunnel(tunnel)
     }
@@ -141,7 +201,13 @@ class AutoTunnelViewModel(
 
     fun addTunnelNetwork(tunnel: TunnelConfig, ssid: String) = intent {
         tunnelsRepository.save(
-            tunnel.copy(tunnelNetworks = tunnel.tunnelNetworks.toMutableSet().apply { add(ssid) })
+            tunnel.copy(tunnelNetworks = tunnel.tunnelNetworks.toMutableList().apply { add(ssid) })
+        )
+    }
+
+    fun addTunnelBSSID(tunnel: TunnelConfig, bssid: String) = intent {
+        tunnelsRepository.save(
+            tunnel.copy(tunnelBSSIDs = tunnel.tunnelBSSIDs.toMutableList().apply { add(bssid) })
         )
     }
 
@@ -152,8 +218,14 @@ class AutoTunnelViewModel(
     fun removeTunnelNetwork(tunnel: TunnelConfig, ssid: String) = intent {
         tunnelsRepository.save(
             tunnel.copy(
-                tunnelNetworks = tunnel.tunnelNetworks.toMutableSet().apply { remove(ssid) }
+                tunnelNetworks = tunnel.tunnelNetworks.toMutableList().apply { remove(ssid) }
             )
+        )
+    }
+
+    fun removeTunnelBSSID(tunnel: TunnelConfig, bssid: String) = intent {
+        tunnelsRepository.save(
+            tunnel.copy(tunnelBSSIDs = tunnel.tunnelBSSIDs.toMutableList().apply { remove(bssid) })
         )
     }
 

@@ -17,6 +17,7 @@ fun Entity.toDomain(): Domain =
         wifiDetectionMethod = wifiDetectionMethod,
         startOnBoot = startOnBoot,
         disableTunnelOnCaptivePortal = disableTunnelOnCaptivePortal,
+        trustedNetworkBSSIDs = trustedNetworkBSSIDs,
     )
 
 fun Domain.toEntity(): Entity =
@@ -33,4 +34,5 @@ fun Domain.toEntity(): Entity =
         wifiDetectionMethod = wifiDetectionMethod,
         startOnBoot = startOnBoot,
         disableTunnelOnCaptivePortal = disableTunnelOnCaptivePortal,
+        trustedNetworkBSSIDs = trustedNetworkBSSIDs,
     )

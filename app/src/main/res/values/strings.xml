@@ -112,12 +112,12 @@
     <string name="dynamic">Dynamic</string>
     <string name="language">Language</string>
     <string name="display_theme">Display theme</string>
-    <string name="trusted_wifi_names">Trusted Wi-Fi names</string>
+    <string name="trusted_wifi_names">Trusted Wi-Fi</string>
     <string name="add_wifi_name">Add Wi-Fi name</string>
     <string name="primary_tunnel">Default tunnel</string>
     <string name="skip">Skip</string>
     <string name="launch_app_settings">Launch app settings</string>
-    <string name="use_wildcards">Use name wildcards</string>
+    <string name="use_wildcards">Use rule wildcards</string>
     <string name="learn_more">Learn more</string>
     <string name="wildcards_active">Wildcards active</string>
     <string name="use_root_shell_for_wifi">Use a root shell to get Wi-Fi information, preventing the need for location permissions</string>
@@ -332,7 +332,7 @@
     <string name="preferred_tunnel_label">Preferred tunnel: </string>
     <string name="preferred_tunnel">Preferred tunnel</string>
     <string name="mapped">Mapped</string>
-    <string name="tunnel_mapping">Tunnel mapping</string>
+    <string name="tunnel_mapping">Preferred tunnel mapping</string>
     <string name="wifi_settings">Wi-Fi settings</string>
     <string name="backup_and_restore">Backup and restore</string>
     <string name="mobile_data">Mobile data</string>
@@ -349,7 +349,7 @@
     <string name="aovpn_description">Allows Android to start tunnels</string>
     <string name="tunnel_boot_description">Start the default tunnel on boot</string>
     <string name="remote_key">Remote key</string>
-    <string name="tunnel_mapping_description">Map tunnels as preferred by Wi-Fi name</string>
+    <string name="tunnel_mapping_description">Map tunnels as preferred by Wi-Fi name and BSSID</string>
     <string name="monitoring">Monitoring</string>
     <string name="tunnel_running_name_message">Name unchangeable while tunnel is active.</string>
     <string name="metered_tunnel">Metered tunnel</string>
@@ -552,7 +552,19 @@
     <string name="local_network_permission_nearby_devices">Note: Android labels this permission as “nearby devices”.</string>
 
     <string name="local_network_permission_denied">Local network access denied. Some features may not work properly</string>
-    <string name="stop_while_captive_portal">Stop tunnel while captive portal is present</string>
+    <string name="stop_while_captive_portal">Stop tunnel on captive portal</string>
     <string name="seamless_roaming">Seamless roaming</string>
     <string name="seamless_roaming_description">Bind tunnels to the active network to improve reliability on network handoffs</string>
+    <string name="wifi_rules">Wi-Fi Rules</string>
+    <string name="add">Add</string>
+    <string name="bssid">BSSID</string>
+    <string name="wifi_detection_desc">Select how your network details are detected</string>
+    <string name="wildcard_desc">Enable advanced matching for networks using patterns</string>
+    <string name="wildcard_wifi_desc">Supports *, ?, and ! for blacklisting</string>
+    <string name="invalid_bssid_format">Invalid BSSID format</string>
+    <string name="trusted_bssid">Trusted BSSID</string>
+    <string name="wildcard_bssid_desc">Supports * and ! for blacklisting</string>
+    <string name="captive_portal_desc">Keeps tunnels disabled until captive portal is completed</string>
+    <string name="add_bssid">Add BSSID</string>
+    <string name="mapped_rules_count">Mapped rules: %d</string>
 </resources>

@@ -29,13 +29,6 @@ data class ConnectivityState(
         }
     }
 
-    fun requiresCaptivePortalLogin(): Boolean {
-        return activeNetwork is ActiveNetwork.Wifi &&
-            activeNetwork.capabilities?.hasCapability(
-                NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL
-            ) == true
-    }
-
     fun hasAnyUsableCellular(): Boolean {
         if (cellularNetworks.isEmpty()) return false
 
@@ -101,6 +94,15 @@ sealed class ActiveNetwork {
         }
     }
 
+    fun key(bssidAware: Boolean): String {
+        return when (val active = this) {
+            is Wifi -> "wifi:${networkId}${active.bssid}"
+            is Cellular -> "cell:${network?.hashCode() ?: 0}"
+            is Ethernet -> "eth:${network?.hashCode() ?: 0}"
+            is Disconnected -> "none"
+        }
+    }
+
     data class Disconnected(
         override val network: Network? = null,
         override val capabilities: NetworkCapabilities? = null,
@@ -114,7 +116,12 @@ sealed class ActiveNetwork {
         override val network: Network?,
         override val capabilities: NetworkCapabilities? = null,
         val linkProperties: LinkPropertiesSnapshot = LinkPropertiesSnapshot(),
-    ) : ActiveNetwork()
+    ) : ActiveNetwork() {
+        val requiresCaptivePortalLogin: Boolean
+            get() =
+                capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL) ==
+                    true
+    }
 
     data class Cellular(
         override val network: Network?,

@@ -222,7 +222,7 @@ class AndroidNetworkMonitor(
                 ?.trim { it.isWhitespace() || it == '\\' }
                 ?.ifBlank { ANDROID_UNKNOWN_BSSID } ?: ANDROID_UNKNOWN_BSSID
 
-        return WifiDetails(ssid, bssid)
+        return WifiDetails(ssid, bssid.uppercase())
     }
 
     private val privateDnsFlow: Flow<PrivateDnsSettings> = callbackFlow {
@@ -553,7 +553,7 @@ class AndroidNetworkMonitor(
                             networkCapabilities?.getWifiSsidAndBssid()
                                 ?: wifiManager?.getWifiSsidAndBssid()
                                 ?: (ANDROID_UNKNOWN_SSID to ANDROID_UNKNOWN_BSSID)
-                        WifiDetails(ssid, bssid)
+                        WifiDetails(ssid, bssid.uppercase())
                     }
                     LEGACY -> {
                         val lastActive = lastKnownActiveNetwork.value
@@ -564,7 +564,7 @@ class AndroidNetworkMonitor(
                                 lastActive.bssid != ANDROID_UNKNOWN_BSSID
                         ) {
                             Timber.d("Using last active network SSID+BSSID (LEGACY cache)")
-                            return WifiDetails(lastActive.ssid, lastActive.bssid)
+                            return WifiDetails(lastActive.ssid, lastActive.bssid.uppercase())
                         }
                         Timber.d("Triggering new location ping for SSID and BSSID (LEGACY)")
                         val (ssid, bssid) =

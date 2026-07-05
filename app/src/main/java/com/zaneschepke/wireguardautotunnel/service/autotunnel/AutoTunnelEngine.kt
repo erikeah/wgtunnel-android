@@ -1,8 +1,8 @@
 package com.zaneschepke.wireguardautotunnel.service.autotunnel
 
+import com.zaneschepke.networkmonitor.ActiveNetwork
 import com.zaneschepke.wireguardautotunnel.domain.events.AutoTunnelEvent
 import com.zaneschepke.wireguardautotunnel.domain.model.TunnelConfig
-import com.zaneschepke.wireguardautotunnel.domain.state.ActiveNetwork
 import com.zaneschepke.wireguardautotunnel.domain.state.AutoTunnelState
 
 class AutoTunnelEngine {
@@ -95,14 +95,29 @@ class AutoTunnelEngine {
     private fun resolveWifiTunnels(state: AutoTunnelState): List<TunnelConfig> {
         val wifi = state.networkState.activeNetwork as? ActiveNetwork.Wifi ?: return emptyList()
 
-        val matched = state.tunnels.filter { state.matchesNetwork(wifi.ssid, it.tunnelNetworks) }
+        // BSSID match takes priority because it is more specific
+        val bssidMatched =
+            state.tunnels.filter { tunnel -> state.matchesNetwork(wifi.bssid, tunnel.tunnelBSSIDs) }
+        if (bssidMatched.isNotEmpty()) {
+            return bssidMatched
+        }
 
-        return matched.ifEmpty { listOfNotNull(defaultTunnel(state)) }
+        // SSID match second priority
+        val ssidMatched =
+            state.tunnels.filter { tunnel ->
+                state.matchesNetwork(wifi.ssid, tunnel.tunnelNetworks)
+            }
+
+        return ssidMatched.ifEmpty { listOfNotNull(defaultTunnel(state)) }
     }
 
     private fun isWifiTrusted(state: AutoTunnelState): Boolean {
         val wifi = state.networkState.activeNetwork as? ActiveNetwork.Wifi ?: return false
-        return state.matchesNetwork(wifi.ssid, state.settings.trustedNetworkSSIDs)
+
+        val ssidTrusted = state.matchesNetwork(wifi.ssid, state.settings.trustedNetworkSSIDs)
+        val bssidTrusted = state.matchesNetwork(wifi.bssid, state.settings.trustedNetworkBSSIDs)
+
+        return ssidTrusted || bssidTrusted
     }
 
     private fun defaultTunnel(state: AutoTunnelState): TunnelConfig? {
