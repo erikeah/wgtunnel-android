@@ -54,7 +54,10 @@ class EndpointResolver(
                     val result = resolver.resolve(host)
 
                     if (result.ipv4.isNotEmpty() || result.ipv6.isNotEmpty()) {
-                        results[peer.publicKey] = result.copy(ipv6 = result.ipv6.map { "[$it]" })
+                        results[peer.publicKey] =
+                            result.copy(
+                                ipv6 = result.ipv6.map { if (it.startsWith("[")) it else "[$it]" }
+                            )
                         progressed = true
                     }
                 }
