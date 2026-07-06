@@ -287,6 +287,7 @@ class ConfigEditViewModel(
             }
 
         onInterfaceChange(updated)
+        reduce { state.copy(ui = state.ui.copy(showAmneziaValues = true)) }
     }
 
     fun setGlobalAmneziaEnabled(to: Boolean) = intent {
@@ -308,7 +309,7 @@ class ConfigEditViewModel(
             if (current.isAmneziaCompatibilityModeSet()) {
                 false to current.resetAmneziaProperties()
             } else {
-                true to current.toAmneziaCompatibilityConfig()
+                true to current.applyAmneziaDefaults()
             }
 
         reduce {

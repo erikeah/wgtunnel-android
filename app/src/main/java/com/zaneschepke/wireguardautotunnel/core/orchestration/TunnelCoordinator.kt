@@ -157,7 +157,11 @@ class TunnelCoordinator(
         val monitoringSettings = snapshot.monitoring
         val lockdownSettings = snapshot.lockdown
 
-        val config = tunnelConfig.getConfig()
+        var config = tunnelConfig.getConfig()
+
+        // makes sure Amnezia configs are 2.0 compatible
+        config = AmneziaConfigNormalizer.ensureAmneziaCompatibility(config)
+
         val policy =
             ConfigReconciler.ConfigReconcilePolicy(
                 dnsSettings.isGlobalTunnelDnsEnabled,
