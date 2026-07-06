@@ -32,7 +32,6 @@ internal class ServiceHolder(val context: Context) {
 
     fun set(service: TunnelService) {
         _tunnelService.value = service
-        ProxyBackend.setSocketProtector(service)
     }
 
     fun clearVpnService() {
@@ -41,7 +40,6 @@ internal class ServiceHolder(val context: Context) {
     }
 
     fun clearTunnelService() {
-        ProxyBackend.setSocketProtector(null)
         _tunnelService.value = null
     }
 

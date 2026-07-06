@@ -167,14 +167,16 @@ class TunnelBackend(
                     .distinctUntilChangedBy { stable ->
                         when (val net = stable?.state?.activeNetwork) {
                             is ActiveNetwork.Wifi -> {
-                                // WiFi uses key with linkProperties so AP migration is detected
-                                "${net.key()}:${net.linkProperties}"
+                                // WiFi uses key with linkProperties and optional BSSID detection so
+                                // AP migration is detected
+                                "${net.key(true)}:${net.linkProperties}"
                             }
                             else -> net?.key()
                         }
                     }
                     .map { it?.state?.activeNetwork }
-                    .collect { network ->
+                    .collectLatest { network ->
+                        delay(700.milliseconds) // give network time to stabilize
                         if (
                             network != null &&
                                 network !is ActiveNetwork.Disconnected &&

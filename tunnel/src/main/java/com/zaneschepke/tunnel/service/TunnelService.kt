@@ -3,13 +3,10 @@ package com.zaneschepke.tunnel.service
 import android.app.NotificationManager
 import android.content.Intent
 import android.os.IBinder
-import android.os.ParcelFileDescriptor
 import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import com.zaneschepke.networkmonitor.StableNetworkEngine
 import com.zaneschepke.tunnel.backend.Backend
-import com.zaneschepke.tunnel.backend.SocketProtector
 import com.zaneschepke.tunnel.service.ServiceHolder.Companion.alwaysOnCallback
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.Duration.Companion.milliseconds
@@ -23,11 +20,10 @@ import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 
-class TunnelService : LifecycleService(), SocketProtector {
+class TunnelService : LifecycleService() {
 
     private val backend: Backend by inject(Backend::class.java)
 
-    private val stableNetworkEngine: StableNetworkEngine by inject(StableNetworkEngine::class.java)
     private val serviceHolder: ServiceHolder by inject(ServiceHolder::class.java)
     private val shutdownScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -112,24 +108,5 @@ class TunnelService : LifecycleService(), SocketProtector {
             backend.applicationProvider.proxyInitNotification,
             ServiceHolder.SPECIAL_USE_SERVICE_TYPE_ID,
         )
-    }
-
-    // TODO We'll reuse this for now for doing our network binding
-    override fun bypass(fd: Int): Int {
-        if (backend.isSeamlessRoamingEnabled) {
-            stableNetworkEngine.stableState.value?.state?.activeNetwork?.network?.let { net ->
-                val pfd = ParcelFileDescriptor.adoptFd(fd)
-                return try {
-                    net.bindSocket(pfd.fileDescriptor)
-                    1
-                } catch (e: Exception) {
-                    Timber.w(e, "bindSocket failed for fd=$fd")
-                    0
-                } finally {
-                    pfd.detachFd()
-                }
-            }
-        }
-        return 1
     }
 }

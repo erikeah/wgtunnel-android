@@ -8,7 +8,6 @@ import android.os.ParcelFileDescriptor
 import android.system.OsConstants
 import com.zaneschepke.hevtunnel.HevTunnelConfig
 import com.zaneschepke.hevtunnel.TProxyService
-import com.zaneschepke.networkmonitor.StableNetworkEngine
 import com.zaneschepke.tunnel.Tunnel
 import com.zaneschepke.tunnel.backend.Backend
 import com.zaneschepke.tunnel.backend.KillSwitch
@@ -37,7 +36,6 @@ import timber.log.Timber
 class VpnService : android.net.VpnService(), KillSwitch, SocketProtector {
 
     private val backend: Backend by inject(Backend::class.java)
-    private val stableNetworkEngine: StableNetworkEngine by inject(StableNetworkEngine::class.java)
     private val serviceHolder: ServiceHolder by inject(ServiceHolder::class.java)
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -339,19 +337,6 @@ class VpnService : android.net.VpnService(), KillSwitch, SocketProtector {
 
     override fun bypass(fd: Int): Int {
         return try {
-            if (backend.isSeamlessRoamingEnabled) {
-                stableNetworkEngine.stableState.value?.state?.activeNetwork?.network?.let { net ->
-                    val pfd = ParcelFileDescriptor.adoptFd(fd)
-                    try {
-                        net.bindSocket(pfd.fileDescriptor)
-                        Timber.d("Bound socket $fd to network $net")
-                    } catch (e: Exception) {
-                        Timber.w(e, "bindSocket failed for fd=$fd")
-                    } finally {
-                        pfd.detachFd()
-                    }
-                }
-            }
             if (protect(fd)) 1 else 0
         } catch (e: Exception) {
             Timber.e(e, "Failed to protect/bypass fd=$fd")
