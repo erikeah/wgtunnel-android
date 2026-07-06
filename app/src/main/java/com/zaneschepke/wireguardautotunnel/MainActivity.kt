@@ -635,9 +635,15 @@ class MainActivity : AppCompatActivity() {
                                                 ButtonDefaults.textButtonColors(
                                                     contentColor = MaterialTheme.colorScheme.primary
                                                 ),
+                                            modifier = Modifier.fillMaxWidth(.25f),
                                             contentPadding = PaddingValues(horizontal = 12.dp),
                                         ) {
-                                            Text(text = action.text, fontWeight = FontWeight.Medium)
+                                            Text(
+                                                text = action.text,
+                                                fontWeight = FontWeight.Medium,
+                                                softWrap = true,
+                                                maxLines = 5,
+                                            )
                                         }
                                     }
                                 },
