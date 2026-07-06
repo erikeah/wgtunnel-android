@@ -99,6 +99,14 @@ class LoggerViewModel(
                     fileUtils
                         .exportFile(file, uri, FileUtils.ZIP_FILE_MIME_TYPE)
                         .onFailure(onFailure)
+                        .onSuccess {
+                            postSideEffect(
+                                GlobalSideEffect.Snackbar(
+                                    StringValue.StringResource(R.string.log_export_success),
+                                    ToastType.Success,
+                                )
+                            )
+                        }
                 } finally {
                     if (file.exists()) file.delete()
                 }
@@ -110,6 +118,12 @@ class LoggerViewModel(
     fun deleteLogs() = intent {
         reduce { state.copy(messages = emptyList()) }
         logReader.deleteAndClearLogs()
+        postSideEffect(
+            GlobalSideEffect.Snackbar(
+                StringValue.StringResource(R.string.stored_logs_deleted),
+                ToastType.Success,
+            )
+        )
     }
 
     companion object {

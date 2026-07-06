@@ -569,4 +569,6 @@
     <string name="mapped_rules_count">Mapped rules: %d</string>
     <string name="bssid_in_use">This BSSID or pattern is already in use</string>
     <string name="network_name_in_use">This network name or pattern is already in use</string>
+    <string name="log_export_success">Logs exported successfully</string>
+    <string name="stored_logs_deleted">Stored logs deleted successfully</string>
 </resources>

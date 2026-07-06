@@ -46,19 +46,21 @@ val appModule = module {
         CoroutineScope(SupervisorJob() + Dispatchers.Default)
     }
     single<LogReader> {
+        val version = BuildConfig.VERSION_NAME
+        val flavor = BuildConfig.FLAVOR
         if (BuildConfig.DEBUG) {
             val readPolicy = StrictMode.allowThreadDiskReads()
             val writePolicy = StrictMode.allowThreadDiskWrites()
             try {
                 val storageDir = androidContext().filesDir.absolutePath
-                LogcatReader.init(storageDir = storageDir)
+                LogcatReader.init(storageDir = storageDir, appVersion = version, appFlavor = flavor)
             } finally {
                 StrictMode.setThreadPolicy(readPolicy)
                 StrictMode.setThreadPolicy(writePolicy)
             }
         } else {
             val storageDir = androidContext().filesDir.absolutePath
-            LogcatReader.init(storageDir = storageDir)
+            LogcatReader.init(storageDir = storageDir, appVersion = version, appFlavor = flavor)
         }
     }
 

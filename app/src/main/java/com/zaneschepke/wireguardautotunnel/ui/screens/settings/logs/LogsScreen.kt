@@ -1,5 +1,10 @@
 package com.zaneschepke.wireguardautotunnel.ui.screens.settings.logs
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -103,14 +108,21 @@ fun LogsScreen(
         )
     }
 
-    if (loggerState.messages.isEmpty()) {
-        EmptyStateLottie(message = stringResource(R.string.no_tunnels_yet))
-        return
+    AnimatedContent(
+        targetState = loggerState.messages.isEmpty(),
+        transitionSpec = {
+            fadeIn(animationSpec = tween(250)) togetherWith fadeOut(animationSpec = tween(200))
+        },
+        label = "LogsContentTransition",
+    ) { isEmpty ->
+        if (isEmpty) {
+            EmptyStateLottie(message = stringResource(R.string.no_tunnels_yet))
+        } else {
+            LogList(
+                logs = loggerState.messages,
+                lazyColumnListState = lazyColumnListState,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
-
-    LogList(
-        logs = loggerState.messages,
-        lazyColumnListState = lazyColumnListState,
-        modifier = Modifier.fillMaxSize(),
-    )
 }
