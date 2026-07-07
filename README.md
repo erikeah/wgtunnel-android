@@ -93,7 +93,7 @@ cd wgtunnel
 
 ## Translation
 
-Help translate WG Tunnel on [Crowdin](https://translate.android.wgtunnel.com).
+Help translate WG Tunnel on [Crowdin](https://translate.android.wgtunnel.com/project/wgtunnel/invite?h=11b5b7bf2099293095775d4477320c772818907).
 
 ## Acknowledgements
 
