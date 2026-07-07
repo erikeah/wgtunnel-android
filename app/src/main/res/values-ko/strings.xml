@@ -15,7 +15,6 @@
     <string name="delete_tunnel">터널 삭제</string>
     <string name="tunnel_mobile_data">모바일 데이터에서 터널 사용</string>
     <string name="logs">로그</string>
-    <string name="enable_app_lock">앱 잠금 켜기</string>
     <string name="config_changes_saved">변경한 설정이 저장되었습니다.</string>
     <string name="join_telegram">Telegram 커뮤니티 참여</string>
     <string name="pin_created">Pin 생성 성공</string>
@@ -27,7 +26,6 @@
     <string name="remote_key">원격 키</string>
     <string name="mobile_data">모바일 데이터</string>
     <string name="use_shell_via_shizuku">Shizuku 셸을 이용하여, 루팅하지 않은 기기에서 위치 권한을 요구하지 않고 Wi-Fi 정보를 얻습니다</string>
-    <string name="stop_on_internet_loss">인터넷이 끊겼을 때 터널 중지</string>
     <string name="vpn">VPN</string>
     <string name="tunnel_boot_description">부팅 시 기본 터널 시작</string>
     <string name="allow_lan_traffic">LAN 트래픽 허용</string>
@@ -134,7 +132,6 @@
     <string name="kofi">Ko-fi</string>
     <string name="donation_signoff">감사를 담아,</string>
     <string name="selected">선택함</string>
-    <string name="global_split_tunneling">글로벌 분할 터널링</string>
     <string name="active_network">활성 네트워크:</string>
     <string name="range_hint">(%1$d–%2$d)</string>
     <string name="delete_active_message">활성화된 터널은 삭제할 수 없습니다.</string>
@@ -157,7 +154,6 @@
     <string name="mtu">MTU</string>
     <string name="configuration">설정</string>
     <string name="drag_handle">핸들 드래그</string>
-    <string name="global_dns_servers">글로벌 DNS 서버</string>
     <string name="display_theme">표시 테마</string>
     <string name="contact">연락</string>
     <string name="ports_must_differ">실패. 프록시는 다른 포트를 이용해야 합니다.</string>
@@ -259,7 +255,6 @@
     <string name="unavailable_in_mode">현재 모드에서는 이용 불가</string>
     <string name="server_port">서버:포트</string>
     <string name="camera_permission_required">카메라 권한 필요</string>
-    <string name="enabled_app_shortcuts">앱 바로가기 켜기</string>
     <string name="preferred_tunnel">선호 터널</string>
     <string name="allow">허용</string>
     <string name="underload_packet_magic_header">언더로드 패킷 매직 헤더</string>
@@ -274,7 +269,6 @@
     <string name="settings">설정</string>
     <string name="incorrect_pin">Pin이 잘못되었습니다</string>
     <string name="export_failed">내보내기 실패</string>
-    <string name="enable_remote_app_control">원격 앱 제어 켜기</string>
     <string name="donation_closing">프로젝트에 모든 시간을 할애하는 것이 제 꿈입니다.</string>
     <string name="update_download_failed">업데이트 다운로드에 실패했습니다.</string>
     <string name="network_name">네트워크:</string>
@@ -316,45 +310,5 @@
     <string name="auto_tunnel_running">자동 터널 실행 중</string>
     <string name="done">완료</string>
     <string name="thank_you">WG Tunnel을 이용해주셔서 감사드립니다!</string>
-    <string name="auto_tunnel_channel_id" translatable="false">Auto-tunnel Channel</string>
-    <string name="kofi_url" translatable="false">https://ko-fi.com/zaneschepke</string>
-    <string name="bitcoin_cash_address" translatable="false">bitcoincash:qp6xacvswha2tjfp2rscguq3gd4eecxeuvcgtyjv58</string>
-    <string name="solana" translatable="false">Solana (SOL)</string>
-    <string name="docs_wildcards" translatable="false">https://wgtunnel.com/docs/auto-tunneling/#use-name-wildcards</string>
-    <string name="litecoin" translatable="false">Litecoin (LTC)</string>
-    <string name="liberapay_url" translatable="false">https://liberapay.com/zaneschepke</string>
-    <string name="tron_address" translatable="false">TCbR2SqstTLxCA9zp52iC7G2DfHUGD9ak2</string>
-    <string name="vpn_channel_id" translatable="false">VPN Channel</string>
-    <string name="telegram_url" translatable="false">https://t.me/wgtunnel</string>
-    <string name="monero" translatable="false">Monero (XMR)</string>
-    <string name="bitcoin" translatable="false">Bitcoin (BTC)</string>
-    <string name="polygon" translatable="false">Polygon (POL)</string>
-    <string name="privacy_policy_url" translatable="false">https://wgtunnel.com/privacy-policy/</string>
-    <string name="avalanche_address" translatable="false">0xd711c24D0E355d9D694F60B42FdDAFd8653D2786</string>
-    <string name="stellar_address" translatable="false">GAOHREIPAOKSTD4ELXCMM7LDZPRGKJ2DNHEIXLU752PJS6CDPBAEM75B</string>
-    <string name="db_name" translatable="false">wg-tunnel-db</string>
-    <string name="ethereum" translatable="false">Ethereum (ETH)</string>
-    <string name="bitcoin_address" translatable="false">bc1qu6dwlwhav7cwp5gv3kyv3cpwrjrra80p75js6u</string>
-    <string name="translation_url" translatable="false">https://hosted.weblate.org/engage/wg-tunnel/</string>
-    <string name="zcash_address" translatable="false">u1fkx80l0mr7cgzmj5xusnf4fa0hlvttaedlqjzl657dyyfqq4tzq49v4ru53u8re0kfnlah7s363msewcva43v8a2rn8zqs56jeeu6m7snrfljs343kfkgv7gsa76xg005wz95855uwlrvgan0er8n3sp75mmmj44n3fnjar5y7jy0pd2k5yw33lgwpuectuknkwstdkkfyqvxh9xq6c</string>
-    <string name="docs_url" translatable="false">https://wgtunnel.com/docs/getting-started</string>
-    <string name="ecash" translatable="false">eCash (XEC)</string>
-    <string name="my_email" translatable="false">support@zaneschepke.com</string>
-    <string name="ethereum_address" translatable="false">0xd711c24D0E355d9D694F60B42FdDAFd8653D2786</string>
-    <string name="litecoin_address" translatable="false">ltc1q983jnz3n2zshp2xyme8ant45aah5hv337k8nm7</string>
-    <string name="dev_name" translatable="false">Zane</string>
-    <string name="ecash_address" translatable="false">ecash:qrnnvzhezgm9unazue2mw7np5qhdk2874g996nd2zw</string>
-    <string name="tron" translatable="false">Tron (TRX)</string>
-    <string name="polygon_address" translatable="false">0xd711c24D0E355d9D694F60B42FdDAFd8653D2786</string>
-    <string name="stellar" translatable="false">Stellar (XLM)</string>
-    <string name="monero_address" translatable="false">44D1vWL4CqmEGiRhwtUy6MT2SgaCYpk5o3Nh6YxBFyoCXLZ5eZMLiDGj9uoo51mGjeiLxHWyV28MxDPUzQZN4PoqML16ZB9</string>
-    <string name="zcash" translatable="false">Zcash (ZEC)</string>
-    <string name="solana_address" translatable="false">5qPMZa2Y2R6D6AUzrofS4o2M1nzNpbMiAkcRcBkjsmwQ</string>
-    <string name="github_url" translatable="false">https://github.com/wgtunnel/wgtunnel/issues</string>
-    <string name="avalanche" translatable="false">Avalanche (AVAX)</string>
-    <string name="website_url" translatable="false">https://wgtunnel.com</string>
-    <string name="matrix_url" translatable="false">https://matrix.to/#/#wg-tunnel-space:matrix.org</string>
-    <string name="bitcoin_cash" translatable="false">Bitcoin Cash (BCH)</string>
-    <string name="github_sponsors_url" translatable="false">https://github.com/sponsors/zaneschepke</string>
     <string name="app_name">WG Tunnel</string>
 </resources>

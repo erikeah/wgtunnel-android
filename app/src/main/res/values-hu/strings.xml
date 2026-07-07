@@ -17,7 +17,6 @@
     <string name="delete_tunnel">Alagút törlése</string>
     <string name="tunnel_mobile_data">Alagút mobiladat-forgalmon</string>
     <string name="logs">Naplók</string>
-    <string name="enable_app_lock">Alkalmazászár engedélyezése</string>
     <string name="config_changes_saved">Konfigurációs módosítások mentve.</string>
     <string name="join_telegram">Csatlakozás a Telegram közösséghez</string>
     <string name="pin_created">PIN-kód sikeresen létrehozva</string>
@@ -29,7 +28,6 @@
     <string name="remote_key">Távoli kulcs</string>
     <string name="mobile_data">Mobiladat</string>
     <string name="use_shell_via_shizuku">Shell használata Shizuku-n keresztül a Wi-Fi információkhoz, így nincs szükség helymeghatározási engedélyre nem rootolt eszközökön</string>
-    <string name="stop_on_internet_loss">Alagút leállítása az internet megszűnésekor</string>
     <string name="vpn">VPN</string>
     <string name="tunnel_boot_description">Alapértelmezett alagút indítása rendszerindításkor</string>
     <string name="allow_lan_traffic">LAN forgalom engedélyezése</string>
@@ -135,7 +133,6 @@
     <string name="kofi">Ko-fi</string>
     <string name="donation_signoff">Hálával,</string>
     <string name="selected">Kiválasztva</string>
-    <string name="global_split_tunneling">Globális split tunneling</string>
     <string name="active_network">Aktív hálózat:</string>
     <string name="range_hint">(%1$d–%2$d)</string>
     <string name="delete_active_message">Aktív alagút nem törölhető.</string>
@@ -158,7 +155,6 @@
     <string name="mtu">MTU</string>
     <string name="configuration">Konfiguráció</string>
     <string name="drag_handle">Húzóka</string>
-    <string name="global_dns_servers">Globális DNS szerverek</string>
     <string name="display_theme">Megjelenítési téma</string>
     <string name="contact">Kapcsolat</string>
     <string name="ports_must_differ">Sikertelen. A proxyknak különböző portokat kell használniuk.</string>
@@ -258,7 +254,6 @@
     <string name="unavailable_in_mode">Nem érhető el a jelenlegi módban</string>
     <string name="server_port">Szerver:Port</string>
     <string name="camera_permission_required">Kamera engedély szükséges</string>
-    <string name="enabled_app_shortcuts">App gyorsindítók engedélyezése</string>
     <string name="preferred_tunnel">Preferált alagút</string>
     <string name="allow">Engedélyezés</string>
     <string name="underload_packet_magic_header">Underload csomag magic header</string>
@@ -273,7 +268,6 @@
     <string name="settings">Beállítások</string>
     <string name="incorrect_pin">A PIN-kód helytelen</string>
     <string name="export_failed">Exportálás sikertelen</string>
-    <string name="enable_remote_app_control">Távoli vezérlés engedélyezése</string>
     <string name="donation_closing">Minden álmom, hogy teljes munkaidőben ezen a projekten dolgozhassak.</string>
     <string name="update_download_failed">Frissítés letöltése sikertelen.</string>
     <string name="network_name">Hálózat:</string>
@@ -315,46 +309,6 @@
     <string name="auto_tunnel_running">Az auto-alagút fut</string>
     <string name="done">Kész</string>
     <string name="thank_you">Köszönjük, hogy a WG Tunnelt használja!</string>
-    <string name="auto_tunnel_channel_id" translatable="false">Auto-tunnel Channel</string>
-    <string name="kofi_url" translatable="false">https://ko-fi.com/zaneschepke</string>
-    <string name="bitcoin_cash_address" translatable="false">bitcoincash:qp6xacvswha2tjfp2rscguq3gd4eecxeuvcgtyjv58</string>
-    <string name="solana" translatable="false">Solana (SOL)</string>
-    <string name="docs_wildcards" translatable="false">https://wgtunnel.com/docs/auto-tunneling/#use-name-wildcards</string>
-    <string name="litecoin" translatable="false">Litecoin (LTC)</string>
-    <string name="liberapay_url" translatable="false">https://liberapay.com/zaneschepke</string>
-    <string name="tron_address" translatable="false">TCbR2SqstTLxCA9zp52iC7G2DfHUGD9ak2</string>
-    <string name="vpn_channel_id" translatable="false">VPN Channel</string>
-    <string name="telegram_url" translatable="false">https://t.me/wgtunnel</string>
-    <string name="monero" translatable="false">Monero (XMR)</string>
-    <string name="bitcoin" translatable="false">Bitcoin (BTC)</string>
-    <string name="polygon" translatable="false">Polygon (POL)</string>
-    <string name="privacy_policy_url" translatable="false">https://wgtunnel.com/privacy-policy/</string>
-    <string name="avalanche_address" translatable="false">0xd711c24D0E355d9D694F60B42FdDAFd8653D2786</string>
-    <string name="stellar_address" translatable="false">GAOHREIPAOKSTD4ELXCMM7LDZPRGKJ2DNHEIXLU752PJS6CDPBAEM75B</string>
-    <string name="db_name" translatable="false">wg-tunnel-db</string>
-    <string name="ethereum" translatable="false">Ethereum (ETH)</string>
-    <string name="bitcoin_address" translatable="false">bc1qu6dwlwhav7cwp5gv3kyv3cpwrjrra80p75js6u</string>
-    <string name="translation_url" translatable="false">https://hosted.weblate.org/engage/wg-tunnel/</string>
-    <string name="zcash_address" translatable="false">u1fkx80l0mr7cgzmj5xusnf4fa0hlvttaedlqjzl657dyyfqq4tzq49v4ru53u8re0kfnlah7s363msewcva43v8a2rn8zqs56jeeu6m7snrfljs343kfkgv7gsa76xg005wz95855uwlrvgan0er8n3sp75mmmj44n3fnjar5y7jy0pd2k5yw33lgwpuectuknkwstdkkfyqvxh9xq6c</string>
-    <string name="docs_url" translatable="false">https://wgtunnel.com/docs/getting-started</string>
-    <string name="ecash" translatable="false">eCash (XEC)</string>
-    <string name="my_email" translatable="false">support@zaneschepke.com</string>
-    <string name="ethereum_address" translatable="false">0xd711c24D0E355d9D694F60B42FdDAFd8653D2786</string>
-    <string name="litecoin_address" translatable="false">ltc1q983jnz3n2zshp2xyme8ant45aah5hv337k8nm7</string>
-    <string name="dev_name" translatable="false">Zane</string>
-    <string name="ecash_address" translatable="false">ecash:qrnnvzhezgm9unazue2mw7np5qhdk2874g996nd2zw</string>
-    <string name="tron" translatable="false">Tron (TRX)</string>
-    <string name="polygon_address" translatable="false">0xd711c24D0E355d9D694F60B42FdDAFd8653D2786</string>
-    <string name="stellar" translatable="false">Stellar (XLM)</string>
-    <string name="monero_address" translatable="false">44D1vWL4CqmEGiRhwtUy6MT2SgaCYpk5o3Nh6YxBFyoCXLZ5eZMLiDGj9uoo51mGjeiLxHWyV28MxDPUzQZN4PoqML16ZB9</string>
-    <string name="zcash" translatable="false">Zcash (ZEC)</string>
-    <string name="solana_address" translatable="false">5qPMZa2Y2R6D6AUzrofS4o2M1nzNpbMiAkcRcBkjsmwQ</string>
-    <string name="github_url" translatable="false">https://github.com/wgtunnel/wgtunnel/issues</string>
-    <string name="avalanche" translatable="false">Avalanche (AVAX)</string>
-    <string name="website_url" translatable="false">https://wgtunnel.com</string>
-    <string name="matrix_url" translatable="false">https://matrix.to/#/#wg-tunnel-space:matrix.org</string>
-    <string name="bitcoin_cash" translatable="false">Bitcoin Cash (BCH)</string>
-    <string name="github_sponsors_url" translatable="false">https://github.com/sponsors/zaneschepke</string>
     <string name="transport_packet_junk_size">Transzport csomag szemétmérete</string>
     <string name="cookie_packet_junk_size">Süti (cookie) csomag szemétmérete</string>
 </resources>

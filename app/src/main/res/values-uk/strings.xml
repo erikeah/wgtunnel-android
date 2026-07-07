@@ -47,7 +47,6 @@
     <string name="preshared_key">Загальний ключ</string>
     <string name="seconds">Секунд</string>
     <string name="persistent_keepalive">Підтримка роботи тунелю (keepalive)</string>
-    <string name="enabled_app_shortcuts">Дозволити ярлики</string>
     <string name="unknown_error">Невідома помилка</string>
     <string name="tunnel_on_wifi">Тунелювати недовірені мережі Wi-Fi</string>
     <string name="email_subject">Підтримка WG-Tunnel</string>
@@ -67,7 +66,6 @@
     <string name="pin_created">PIN-код створено успішно</string>
     <string name="enter_pin">Введіть PIN-код</string>
     <string name="create_pin">Створити PIN-код</string>
-    <string name="enable_app_lock">Увімкнути блокування додатку</string>
     <string name="edit_tunnel">Редагувати тунель</string>
     <string name="set_primary_tunnel">Встановити як основний тунель</string>
     <string name="support">Підтримка</string>
@@ -132,7 +130,6 @@
     <string name="local_logging">Локальне ведення журналу</string>
     <string name="start_auto">Запустити автотунель</string>
     <string name="stop_auto">Зупинити автотунель</string>
-    <string name="stop_on_internet_loss">Зупинити тунель під час втрати інтернету</string>
     <string name="vpn_channel_description">Канал сповіщень про стан VPN</string>
     <string name="enable_amnezia_compatibility">Включити сумісність із Amnezia</string>
     <string name="enter_config_url">Введіть URL-адресу конфігурації</string>
@@ -208,7 +205,6 @@
     <string name="kofi">Ko-fi</string>
     <string name="donation_signoff">З вдячністю,</string>
     <string name="selected">Вибрані</string>
-    <string name="global_split_tunneling">Глобальне роздільне тунелювання</string>
     <string name="active_network">Активна мережа:</string>
     <string name="range_hint">(%1$d–%2$d)</string>
     <string name="delete_active_message">Неможливо видалити активний тунель.</string>
@@ -222,7 +218,6 @@
     <string name="kill_switch">kill switch</string>
     <string name="configuration">Конфігурація</string>
     <string name="drag_handle">Елемент перетягування</string>
-    <string name="global_dns_servers">Глобальні DNS сервери</string>
     <string name="contact">Зв\'язок</string>
     <string name="ports_must_differ">Помилка. Проксі мають мати різні порти.</string>
     <string name="join_matrix">Приєднуйтесь до спільноти Matrix</string>
@@ -288,7 +283,6 @@
     <string name="fix">Виправлення</string>
     <string name="tunnel_running_name_message">Неможливо змінити назву, поки тунель активний.</string>
     <string name="export_failed">Експорт не вдався</string>
-    <string name="enable_remote_app_control">Увімкнути дистанційне керування застосунком</string>
     <string name="donation_closing">Присвятити весь свій робочий час цьому проєкту — моя мрія.</string>
     <string name="update_download_failed">Не вдалося завантажити оновлення.</string>
     <string name="network_name">Мережа:</string>
@@ -315,46 +309,6 @@
     <string name="proxy">Проксі</string>
     <string name="auto_tunnel_running">Автоматичний тунель запущений</string>
     <string name="done">Готово</string>
-    <string name="auto_tunnel_channel_id" translatable="false">Auto-tunnel Channel</string>
-    <string name="kofi_url" translatable="false">https://ko-fi.com/zaneschepke</string>
-    <string name="bitcoin_cash_address" translatable="false">bitcoincash:qp6xacvswha2tjfp2rscguq3gd4eecxeuvcgtyjv58</string>
-    <string name="solana" translatable="false">Solana (SOL)</string>
-    <string name="docs_wildcards" translatable="false">https://wgtunnel.com/docs/auto-tunneling/#use-name-wildcards</string>
-    <string name="litecoin" translatable="false">Litecoin (LTC)</string>
-    <string name="liberapay_url" translatable="false">https://liberapay.com/zaneschepke</string>
-    <string name="tron_address" translatable="false">TCbR2SqstTLxCA9zp52iC7G2DfHUGD9ak2</string>
-    <string name="vpn_channel_id" translatable="false">VPN Channel</string>
-    <string name="telegram_url" translatable="false">https://t.me/wgtunnel</string>
-    <string name="monero" translatable="false">Monero (XMR)</string>
-    <string name="bitcoin" translatable="false">Bitcoin (BTC)</string>
-    <string name="polygon" translatable="false">Polygon (POL)</string>
-    <string name="privacy_policy_url" translatable="false">https://wgtunnel.com/privacy-policy/</string>
-    <string name="avalanche_address" translatable="false">0xd711c24D0E355d9D694F60B42FdDAFd8653D2786</string>
-    <string name="stellar_address" translatable="false">GAOHREIPAOKSTD4ELXCMM7LDZPRGKJ2DNHEIXLU752PJS6CDPBAEM75B</string>
-    <string name="db_name" translatable="false">wg-tunnel-db</string>
-    <string name="ethereum" translatable="false">Ethereum (ETH)</string>
-    <string name="bitcoin_address" translatable="false">bc1qu6dwlwhav7cwp5gv3kyv3cpwrjrra80p75js6u</string>
-    <string name="translation_url" translatable="false">https://hosted.weblate.org/engage/wg-tunnel/</string>
-    <string name="zcash_address" translatable="false">u1fkx80l0mr7cgzmj5xusnf4fa0hlvttaedlqjzl657dyyfqq4tzq49v4ru53u8re0kfnlah7s363msewcva43v8a2rn8zqs56jeeu6m7snrfljs343kfkgv7gsa76xg005wz95855uwlrvgan0er8n3sp75mmmj44n3fnjar5y7jy0pd2k5yw33lgwpuectuknkwstdkkfyqvxh9xq6c</string>
-    <string name="docs_url" translatable="false">https://wgtunnel.com/docs/getting-started</string>
-    <string name="ecash" translatable="false">eCash (XEC)</string>
-    <string name="my_email" translatable="false">support@zaneschepke.com</string>
-    <string name="ethereum_address" translatable="false">0xd711c24D0E355d9D694F60B42FdDAFd8653D2786</string>
-    <string name="litecoin_address" translatable="false">ltc1q983jnz3n2zshp2xyme8ant45aah5hv337k8nm7</string>
-    <string name="dev_name" translatable="false">Zane</string>
-    <string name="ecash_address" translatable="false">ecash:qrnnvzhezgm9unazue2mw7np5qhdk2874g996nd2zw</string>
-    <string name="tron" translatable="false">Tron (TRX)</string>
-    <string name="polygon_address" translatable="false">0xd711c24D0E355d9D694F60B42FdDAFd8653D2786</string>
-    <string name="stellar" translatable="false">Stellar (XLM)</string>
-    <string name="monero_address" translatable="false">44D1vWL4CqmEGiRhwtUy6MT2SgaCYpk5o3Nh6YxBFyoCXLZ5eZMLiDGj9uoo51mGjeiLxHWyV28MxDPUzQZN4PoqML16ZB9</string>
-    <string name="zcash" translatable="false">Zcash (ZEC)</string>
-    <string name="solana_address" translatable="false">5qPMZa2Y2R6D6AUzrofS4o2M1nzNpbMiAkcRcBkjsmwQ</string>
-    <string name="github_url" translatable="false">https://github.com/wgtunnel/wgtunnel/issues</string>
-    <string name="avalanche" translatable="false">Avalanche (AVAX)</string>
-    <string name="website_url" translatable="false">https://wgtunnel.com</string>
-    <string name="matrix_url" translatable="false">https://matrix.to/#/#wg-tunnel-space:matrix.org</string>
-    <string name="bitcoin_cash" translatable="false">Bitcoin Cash (BCH)</string>
-    <string name="github_sponsors_url" translatable="false">https://github.com/sponsors/zaneschepke</string>
     <string name="transport_packet_junk_size">Розмір «сміття» в транспортних пакетах</string>
     <string name="cookie_packet_junk_size">Розмір «сміття» в cookie-пакетах</string>
 </resources>
