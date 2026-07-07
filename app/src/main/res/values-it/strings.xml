@@ -155,7 +155,6 @@
     <string name="service_running_error">Il servizio non è in esecuzione</string>
     <string name="config_error">Configurazione non valida</string>
     <string name="dns_resolve_error">Risoluzione DNS fallita</string>
-    <string name="enable_remote_app_control">Abilita il controllo dell\'app da remoto</string>
     <string name="version_template">Versione: %1$s</string>
     <string name="flavor_template">Caratteristica: %1$s</string>
     <string name="update_available">Aggiornamento disponibile!</string>

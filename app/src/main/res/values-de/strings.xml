@@ -283,7 +283,6 @@
     <string name="other">Sonstiges</string>
     <string name="kill_switch">Notschalter</string>
     <string name="configuration">Konfiguration</string>
-    <string name="global_dns_servers">Globale DNS Server</string>
     <string name="contact">Kontakt</string>
     <string name="backup_and_restore">Sichern und Wiederherstellen</string>
     <string name="about">Über</string>

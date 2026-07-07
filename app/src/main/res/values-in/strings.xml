@@ -171,7 +171,6 @@
     <string name="kofi">Ko-fi</string>
     <string name="donation_signoff">Dengan penuh rasa syukur,</string>
     <string name="selected">Dipilih</string>
-    <string name="global_split_tunneling">Terowongan terpisah global</string>
     <string name="active_network">Jaringan Aktif:</string>
     <string name="range_hint">(%1$d–%2$d)</string>
     <string name="delete_active_message">Tidak dapat menghapus terowongan yang sedang aktif.</string>
