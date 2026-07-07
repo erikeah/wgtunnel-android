@@ -34,16 +34,15 @@ class TunnelService : LifecycleService() {
     @Volatile private var userActivatedShutdown = false
 
     override fun onCreate() {
+        super.onCreate()
         serviceHolder.set(this)
         launchForegroundNotification()
         observeProxyPersistentNotification()
-        super.onCreate()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         serviceHolder.set(this)
-        launchForegroundNotification()
 
         // Service restarted by system, reuse always-on VPN callback
         if (
@@ -54,6 +53,8 @@ class TunnelService : LifecycleService() {
             Timber.d("TunnelService started by system")
             alwaysOnCallback?.alwaysOnTriggered()
         }
+
+        launchForegroundNotification()
 
         return START_STICKY
     }

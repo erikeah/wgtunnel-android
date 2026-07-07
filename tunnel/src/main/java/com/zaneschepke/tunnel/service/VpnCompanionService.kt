@@ -39,6 +39,23 @@ class VpnCompanionService : LifecycleService() {
         )
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+
+        val isSystemRestart =
+            intent == null ||
+                intent.component == null ||
+                intent.component!!.packageName != packageName
+
+        if (isSystemRestart) {
+            Timber.d("VpnCompanionService started by system")
+        }
+
+        launchForegroundNotification()
+
+        return START_STICKY
+    }
+
     @OptIn(FlowPreview::class)
     private fun observeVpnPersistentNotification() {
         lifecycleScope.launch {
