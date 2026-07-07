@@ -1,7 +1,7 @@
-What's new:
-- Doze mode handshake fix
-- Optional I2-5 bugfix
-- Create from scratch crash bugfix
-- Show tunnel statistics in notification
-- Filter tunnel by latency
-- Translations
+Co nowego:
+- Naprawiono uzgadnianie trybu drzemki.
+- Opcjonalnie naprawiono błąd I2-5.
+- Naprawiono błąd powodujący awarię podczas tworzenia od podstaw.
+- Wyświetlanie statystyk tunelu w powiadomieniach.
+- Filtrowanie tunelu według opóźnienia.
+- Tłumaczenia.

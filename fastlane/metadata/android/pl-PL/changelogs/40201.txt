@@ -1,3 +1,3 @@
-What's new:
-- Auto-tunnel screen not loading without connecting to Wi-Fi bugfix
-- Import tunnel via URL bugfix
+Co nowego:
+- Naprawiono błąd powodujący, że ekran autotunelowania nie wczytywał się bez połączenia z Wi-Fi.
+- Naprawiono błąd związany z importowaniem tunelu przez adres URL.

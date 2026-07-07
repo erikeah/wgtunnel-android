@@ -1,5 +1,5 @@
-What's new:
-- Amnezia 2.0 support
-- Copy split tunnel apps from existing config
-- Logger start bugfix
-- Quick tile added sync bugfix
+Co nowego:
+- Obsługa Amnezia 2.0.
+- Kopiowanie aplikacji rozdzielonego tunelu z istniejącej konfiguracji.
+- Naprawiono błąd uruchamiania rejestratora.
+- Naprawiono błąd synchronizacji dodanego szybkiego kafelka.
