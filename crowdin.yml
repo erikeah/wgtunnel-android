@@ -6,6 +6,60 @@ preserve_hierarchy: true
 files:
   - source: "/app/src/main/res/values/strings.xml"
     translation: "/app/src/main/res/values-%android_code%/%original_file_name%"
+    languages_mapping:
+      android_code:
+        # Czech
+        cs: cs
+        # German
+        de: de
+        # Spanish
+        es: es
+        # Estonian
+        et: et
+        # Persian (Farsi)
+        fa: fa
+        # Finnish
+        fi: fi
+        # French
+        fr: fr
+        # Hungarian
+        hu: hu
+        # Indonesian
+        in: in
+        # Italian
+        it: it
+        # Japanese
+        ja: ja
+        # Georgian
+        ka: ka
+        # Korean
+        ko: ko
+        # Dutch
+        nl: nl
+        # Polish
+        pl: pl
+        # Portuguese (Brazil)
+        pt-BR: pt-rBR
+        # Portuguese (Portugal)
+        pt-PT: pt-rPT
+        # Russian
+        ru: ru
+        # Slovak
+        sk: sk
+        # Tamil
+        ta: ta
+        # Turkish
+        tr: tr
+        # Ukrainian
+        uk: uk
+        # Urdu (Pakistan)
+        ur-PK: ur
+        # Vietnamese
+        vi: vi
+        # Chinese Simplified (China)
+        zh-CN: zh-rCN
+        # Chinese Traditional (Taiwan)
+        zh-TW: zh-rTW
 
 commit_message: "chore: update translations from Crowdin"
 append_commit_message: false
