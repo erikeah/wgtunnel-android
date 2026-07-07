@@ -1,0 +1,11 @@
+#
+# Crowdin configuration
+#
+preserve_hierarchy: true
+
+files:
+  - source: "/app/src/main/res/values/strings.xml"
+    translation: "/app/src/main/res/values-%android_code%/%original_file_name%"
+
+commit_message: "chore: update translations from Crowdin"
+append_commit_message: false
