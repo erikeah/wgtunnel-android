@@ -49,5 +49,14 @@ files:
         uk: uk
         vi: vi
 
+  - source: "/fastlane/metadata/android/en-US/title.txt"
+    translation: "/fastlane/metadata/android/%locale%/%original_file_name%"
+
+  - source: "/fastlane/metadata/android/en-US/short_description.txt"
+    translation: "/fastlane/metadata/android/%locale%/%original_file_name%"
+
+  - source: "/fastlane/metadata/android/en-US/full_description.txt"
+    translation: "/fastlane/metadata/android/%locale%/%original_file_name%"
+
 commit_message: "chore: update translations from Crowdin"
 append_commit_message: false
